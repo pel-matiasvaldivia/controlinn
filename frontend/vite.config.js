@@ -7,11 +7,7 @@ export default defineConfig({
   server: {
     port: 3001,
     host: '0.0.0.0',
-    allowedHosts: [
-      'controlinn.alertasenlinea.com.ar',
-      'localhost',
-      '127.0.0.1'
-    ],
+    allowedHosts: true,
     watch: {
       usePolling: true // Asegura que funcione el hot-reload dentro de Docker en Windows
     },
