@@ -55,14 +55,25 @@ async function query(text, params = []) {
   const currentType = process.env.DB_TYPE === 'sqlite' || sqliteDb !== null;
 
   if (currentType) {
-    // Reemplazar sintaxis $1, $2... por ? para SQLite
-    const sqliteSql = text.replace(/\$\d+/g, '?');
+    let cleanedSql = text;
     
-    // SQLite no soporta 'RETURNING *' o 'ON CONFLICT (username) DO NOTHING' de la misma manera que PG
-    // Limpiamos algunos modificadores específicos si es necesario
-    let cleanedSql = sqliteSql;
+    // 1. Reemplazar sintaxis $1, $2... por ? para SQLite
+    cleanedSql = cleanedSql.replace(/\$\d+/g, '?');
+    
+    // 2. Manejar dialectos de fecha (NOW() -> CURRENT_TIMESTAMP)
+    cleanedSql = cleanedSql.replace(/NOW\(\)/gi, 'CURRENT_TIMESTAMP');
+    
+    // 3. Manejar ON CONFLICT (específicos de PG)
     if (cleanedSql.toUpperCase().includes('ON CONFLICT') && cleanedSql.toUpperCase().includes('DO NOTHING')) {
       cleanedSql = cleanedSql.replace(/ON CONFLICT.*DO NOTHING/i, 'OR IGNORE');
+    }
+    
+    // 4. Manejar RETURNING * o RETURNING id
+    // SQLite no soporta RETURNING en versiones antiguas de better-sqlite3 o de forma nativa igual que PG
+    let shouldReturnRows = false;
+    if (cleanedSql.toUpperCase().includes('RETURNING')) {
+      cleanedSql = cleanedSql.replace(/RETURNING.*/i, '');
+      shouldReturnRows = true;
     }
     
     const statement = sqliteDb.prepare(cleanedSql);
@@ -73,9 +84,22 @@ async function query(text, params = []) {
       return { rows, rowCount: rows.length };
     } else {
       const result = statement.run(params);
-      // Para emular RETURNING id en inserciones, si es INSERT, buscamos la fila insertada si se requiere
+      
+      // Si se requería RETURNING, intentamos emularlo buscando la última fila si es posible
+      // Nota: Esto es un fallback limitado. Solo funciona bien para INSERT simples.
+      let rows = [];
+      if (shouldReturnRows && result.lastInsertRowid) {
+        // Intentar adivinar la tabla para el SELECT post-insert
+        const tableMatch = upperSql.match(/INTO\s+([^\s\(]+)/i);
+        if (tableMatch) {
+          const tableName = tableMatch[1];
+          const lastRow = sqliteDb.prepare(`SELECT * FROM ${tableName} WHERE rowid = ?`).get(result.lastInsertRowid);
+          if (lastRow) rows = [lastRow];
+        }
+      }
+
       return {
-        rows: [],
+        rows,
         rowCount: result.changes,
         lastInsertId: result.lastInsertRowid
       };

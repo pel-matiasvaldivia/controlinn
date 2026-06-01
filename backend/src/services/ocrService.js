@@ -1,5 +1,26 @@
 const { createWorker } = require('tesseract.js');
 
+let worker = null;
+
+/**
+ * Inicializa el worker de Tesseract si no existe.
+ */
+async function getWorker() {
+  if (!worker) {
+    console.log('[OCR-SERVICE] Inicializando worker persistente...');
+    const { createWorker } = require('tesseract.js');
+    // En v4+, la inicialización explícita suele ser más estable para workers persistentes
+    worker = await createWorker();
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    
+    await worker.setParameters({
+      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -',
+    });
+  }
+  return worker;
+}
+
 /**
  * Procesa una imagen en buffer para detectar patentes.
  * @param {Buffer} imageBuffer Buffer de la imagen capturada.
@@ -10,18 +31,11 @@ async function detectLicensePlate(imageBuffer) {
     throw new Error('No se proveyó ninguna imagen para el análisis OCR.');
   }
 
-  console.log('[OCR-SERVICE] Iniciando procesamiento OCR...');
-  let worker;
   try {
-    // Inicializar Tesseract worker
-    worker = await createWorker('eng'); // Usamos inglés porque contiene caracteres latinos estándar
+    const ocrWorker = await getWorker();
     
-    // Configurar parámetros optimizados para lectura de texto en bloque y números
-    await worker.setParameters({
-      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -', // Filtrar caracteres para patentes
-    });
-
-    const { data: { text, confidence } } = await worker.recognize(imageBuffer);
+    console.log('[OCR-SERVICE] Procesando imagen...');
+    const { data: { text, confidence } } = await ocrWorker.recognize(imageBuffer);
     
     console.log(`[OCR-SERVICE] Texto reconocido: "${text.trim()}" (Confianza: ${confidence}%)`);
 
@@ -36,11 +50,12 @@ async function detectLicensePlate(imageBuffer) {
     };
   } catch (err) {
     console.error('[OCR-SERVICE] Error en reconocimiento OCR:', err);
-    throw err;
-  } finally {
+    // Si falla, reseteamos el worker por si quedó en estado corrupto
     if (worker) {
-      await worker.terminate();
+      try { await worker.terminate(); } catch(e) {}
+      worker = null;
     }
+    throw err;
   }
 }
 
