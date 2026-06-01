@@ -48,9 +48,6 @@ services:
       JWT_SECRET: ${JWT_SECRET:-controlinn_secret_key_2026}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-controlinn_refresh_secret_key_2026}
       RTSP_STREAM_URL: ${RTSP_URL:-rtsp://ffmpeg:87554/live/stream}
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
 
   # Frontend (Vite Dev Server en Desarrollo)
   frontend:
@@ -66,9 +63,6 @@ services:
       - "3001:3001"
     environment:
       VITE_API_URL: /api
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
 
   # FFmpeg - Conversión de RTSP a HLS
   ffmpeg:
