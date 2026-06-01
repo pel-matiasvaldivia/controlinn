@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@zxing/library": "^0.21.0",
     "axios": "^1.6.2",
     "hls.js": "^1.4.12",
     "jsqr": "^1.4.0",

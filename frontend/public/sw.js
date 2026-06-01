@@ -3,6 +3,7 @@ const CACHE_NAME = 'controlinn-v1';
 const APP_SHELL = [
   '/',
   '/index.html',
+  '/zxing.min.js',
   '/src/main.jsx',
   '/src/App.jsx',
   '/src/index.css',

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BrowserMultiFormatReader } from '@zxing/library';
 import { useStore } from '../store/useStore';
 import { Camera, X, Check, ArrowRight, UserPlus, AlertCircle } from 'lucide-react';
 
@@ -24,6 +23,7 @@ export default function QRScanner() {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const codeReaderRef = useRef(null);
+  const nativeDetectorRef = useRef(null);
 
   // Reproducir un pitido de confirmación mediante Web Audio API (100% offline)
   const playBeep = () => {
@@ -54,9 +54,11 @@ export default function QRScanner() {
     }
   };
 
-  // Procesar código leído (QR o PDF417 de DNI Argentino)
+  // Procesar código leído (QR o PDF417 de DNI / Licencia de Conducir Argentina)
   const processBarcodeData = (rawText) => {
     if (!rawText) return;
+    
+    console.log('[SCANNER] Código detectado:', rawText);
     
     try {
       let dni = '';
@@ -65,9 +67,11 @@ export default function QRScanner() {
       let gender = '';
       let birthDate = '';
       
-      // Caso 1: Formato URL (ej. QR moderno en parte trasera de DNI)
-      if (rawText.includes('?') || rawText.startsWith('http')) {
-        const urlString = rawText.trim();
+      const cleanText = rawText.trim().replace(/\r/g, '');
+      
+      // Caso 1: Formato URL (ej. QR de parte trasera del DNI)
+      if (cleanText.includes('?') || cleanText.startsWith('http')) {
+        const urlString = cleanText;
         const urlParams = new URLSearchParams(urlString.split('?')[1] || urlString);
         
         dni = urlParams.get('dni') || '';
@@ -85,23 +89,60 @@ export default function QRScanner() {
           }
         }
       } 
-      // Caso 2: Formato estándar con separadores '@' (PDF417 y algunos QR)
-      else if (rawText.includes('@')) {
-        const fields = rawText.split('@');
+      // Caso 2: Formato delimitado PDF417 (DNI frente y Licencias de Conducir)
+      else {
+        // Dividir por cualquier delimitador común
+        const fields = cleanText.split(/[@%|,]/).map(f => f.trim());
         
-        if (fields.length >= 7) {
-          // Buscamos si el DNI está en la posición 4 o 1 dependiendo de la versión
-          const isModern = fields[4] && /^\d{7,9}$/.test(fields[4].trim());
+        if (fields.length >= 3) {
+          // Encontrar DNI (número de 7 a 9 dígitos)
+          let dniIndex = fields.findIndex(f => /^\d{7,9}$/.test(f));
           
-          dni = isModern ? fields[4].trim() : fields[1].trim();
-          lastName = isModern ? fields[1].trim().toUpperCase() : fields[2].trim().toUpperCase();
-          firstName = isModern ? fields[2].trim().toUpperCase() : fields[3].trim().toUpperCase();
-          gender = isModern ? fields[3].trim().toUpperCase() : fields[4].trim().toUpperCase();
-          const rawBirth = isModern ? fields[6].trim() : fields[5].trim();
-          
-          const dateMatch = rawBirth.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
-          if (dateMatch) {
-            birthDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+          if (dniIndex === -1) {
+            dniIndex = fields.findIndex(f => {
+              const clean = f.replace(/^0+/, '');
+              return /^\d{7,9}$/.test(clean);
+            });
+          }
+
+          if (dniIndex !== -1) {
+            dni = fields[dniIndex].replace(/^0+/, '');
+            
+            // DNI Argentino Moderno (DNI en index 4, datos anteriores)
+            if (dniIndex >= 4 && fields[dniIndex - 3] && fields[dniIndex - 2]) {
+              lastName = fields[dniIndex - 3].toUpperCase();
+              firstName = fields[dniIndex - 2].toUpperCase();
+              gender = fields[dniIndex - 1].toUpperCase();
+              
+              const rawBirth = fields[dniIndex + 2] || '';
+              const dateMatch = rawBirth.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+              if (dateMatch) {
+                birthDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+              }
+            } 
+            // DNI Clásico o Licencia de Conducir Argentina (DNI al inicio)
+            else if (dniIndex + 2 < fields.length) {
+              lastName = fields[dniIndex + 1].toUpperCase();
+              firstName = fields[dniIndex + 2].toUpperCase();
+              
+              if (dniIndex + 3 < fields.length) {
+                const sexField = fields[dniIndex + 3].toUpperCase();
+                if (['M', 'F', 'X'].includes(sexField)) {
+                  gender = sexField;
+                }
+              }
+              
+              // Buscar fecha de nacimiento en campos siguientes
+              for (let j = dniIndex + 3; j < fields.length; j++) {
+                if (fields[j]) {
+                  const dateMatch = fields[j].match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+                  if (dateMatch) {
+                    birthDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+                    break;
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -114,19 +155,19 @@ export default function QRScanner() {
         
         setScannedPerson({
           dni,
-          first_name: firstName,
-          last_name: lastName,
+          first_name: firstName || 'DESCONOCIDO',
+          last_name: lastName || 'DOCUMENTO',
           gender: gender || 'M',
-          birth_date: birthDate,
-          qrData: rawText
+          birth_date: birthDate || '',
+          qrData: cleanText
         });
       }
     } catch (err) {
-      console.error('[SCANNER] Error procesando datos del código:', err);
+      console.error('[SCANNER] Error decodificando código:', err);
     }
   };
 
-  // Iniciar cámara
+  // Iniciar cámara y escaneo
   const startCamera = async () => {
     setScannedPerson(null);
     setManualMode(false);
@@ -145,19 +186,52 @@ export default function QRScanner() {
         videoRef.current.setAttribute('playsinline', 'true');
         videoRef.current.play();
         
-        // Inicializar ZXing BrowserMultiFormatReader
-        const codeReader = new BrowserMultiFormatReader();
-        codeReaderRef.current = codeReader;
-        
-        // Escaneo de video continuo de alto rendimiento
-        codeReader.decodeFromVideoElement(videoRef.current, (result, err) => {
-          if (result) {
-            processBarcodeData(result.getText());
+        // 1. Intentar usar BarcodeDetector nativo del navegador si está disponible (Ultra rápido, acelerado por hardware)
+        if ('BarcodeDetector' in window) {
+          const supportedFormats = await window.BarcodeDetector.getSupportedFormats();
+          if (supportedFormats.includes('qr_code') && supportedFormats.includes('pdf417')) {
+            console.log('[SCANNER] Usando BarcodeDetector Nativo por Hardware!');
+            const detector = new window.BarcodeDetector({ formats: ['qr_code', 'pdf417'] });
+            nativeDetectorRef.current = detector;
+            
+            const nativeScan = async () => {
+              if (!scanning || !videoRef.current) return;
+              try {
+                const barcodes = await detector.detect(videoRef.current);
+                if (barcodes.length > 0) {
+                  processBarcodeData(barcodes[0].rawValue);
+                  return;
+                }
+              } catch (err) {
+                console.error('[SCANNER] Error en detector nativo:', err);
+              }
+              if (streamRef.current) {
+                requestAnimationFrame(nativeScan);
+              }
+            };
+            requestAnimationFrame(nativeScan);
+            return;
           }
-          if (err && !(err.name === 'NotFoundException')) {
-            console.error('[SCANNER] Error de lectura:', err);
-          }
-        });
+        }
+
+        // 2. Si no es soportado nativo, usar ZXing cargado localmente de forma segura
+        if (window.ZXing) {
+          console.log('[SCANNER] Usando ZXing cargado localmente.');
+          const codeReader = new window.ZXing.BrowserMultiFormatReader();
+          codeReaderRef.current = codeReader;
+          
+          codeReader.decodeFromVideoElement(videoRef.current, (result, err) => {
+            if (result) {
+              processBarcodeData(result.getText());
+            }
+            if (err && !(err.name === 'NotFoundException')) {
+              console.error('[SCANNER] Error de lectura ZXing:', err);
+            }
+          });
+        } else {
+          console.error('[SCANNER] ZXing no cargó correctamente.');
+          alert('Error de inicialización: El escáner de códigos no está disponible.');
+        }
       }
     } catch (err) {
       console.error('Error accediendo a la cámara:', err);
@@ -173,6 +247,7 @@ export default function QRScanner() {
       codeReaderRef.current.reset();
       codeReaderRef.current = null;
     }
+    nativeDetectorRef.current = null;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
