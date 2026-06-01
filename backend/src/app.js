@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const db = require('./db/db');
 const initializeDatabase = require('./db/initDb');
 
 const app = express();
@@ -16,10 +17,18 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // Permitir payloads grandes para fotos en Base64
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Inicializar la base de datos (creación de tablas locales en SQLite si aplica)
-initializeDatabase()
-  .then(() => console.log('[APP] Base de datos inicializada.'))
-  .catch(err => console.error('[APP] Error crítico inicializando base de datos:', err));
+// Inicializar la base de datos (handshake inicial y creación de tablas)
+async function startApp() {
+  try {
+    await db.connect();
+    await initializeDatabase();
+    console.log('[APP] Base de datos inicializada.');
+  } catch (err) {
+    console.error('[APP] Error crítico inicializando base de datos:', err);
+  }
+}
+
+startApp();
 
 // Rutas de la API
 const authRouter = require('./routes/auth');
