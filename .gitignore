@@ -34,6 +34,9 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
+# Docker local overrides
+docker-compose.override.yml
+
 # SSL Certificates (leave the directory but ignore files)
 certs/*
 !certs/.gitkeep
