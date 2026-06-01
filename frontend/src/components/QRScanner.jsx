@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import jsQR from 'jsqr';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import { useStore } from '../store/useStore';
 import { Camera, X, Check, ArrowRight, UserPlus, AlertCircle } from 'lucide-react';
 
@@ -22,8 +22,8 @@ export default function QRScanner() {
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const animationFrameRef = useRef(null);
   const streamRef = useRef(null);
+  const codeReaderRef = useRef(null);
 
   // Reproducir un pitido de confirmación mediante Web Audio API (100% offline)
   const playBeep = () => {
@@ -54,6 +54,78 @@ export default function QRScanner() {
     }
   };
 
+  // Procesar código leído (QR o PDF417 de DNI Argentino)
+  const processBarcodeData = (rawText) => {
+    if (!rawText) return;
+    
+    try {
+      let dni = '';
+      let lastName = '';
+      let firstName = '';
+      let gender = '';
+      let birthDate = '';
+      
+      // Caso 1: Formato URL (ej. QR moderno en parte trasera de DNI)
+      if (rawText.includes('?') || rawText.startsWith('http')) {
+        const urlString = rawText.trim();
+        const urlParams = new URLSearchParams(urlString.split('?')[1] || urlString);
+        
+        dni = urlParams.get('dni') || '';
+        lastName = (urlParams.get('apellido') || '').toUpperCase();
+        firstName = (urlParams.get('nombre') || '').toUpperCase();
+        gender = (urlParams.get('sexo') || '').toUpperCase();
+        const rawBirth = urlParams.get('nacimiento') || urlParams.get('fechaNac') || '';
+        
+        if (rawBirth) {
+          const dateMatch = rawBirth.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+          if (dateMatch) {
+            birthDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+          } else {
+            birthDate = rawBirth;
+          }
+        }
+      } 
+      // Caso 2: Formato estándar con separadores '@' (PDF417 y algunos QR)
+      else if (rawText.includes('@')) {
+        const fields = rawText.split('@');
+        
+        if (fields.length >= 7) {
+          // Buscamos si el DNI está en la posición 4 o 1 dependiendo de la versión
+          const isModern = fields[4] && /^\d{7,9}$/.test(fields[4].trim());
+          
+          dni = isModern ? fields[4].trim() : fields[1].trim();
+          lastName = isModern ? fields[1].trim().toUpperCase() : fields[2].trim().toUpperCase();
+          firstName = isModern ? fields[2].trim().toUpperCase() : fields[3].trim().toUpperCase();
+          gender = isModern ? fields[3].trim().toUpperCase() : fields[4].trim().toUpperCase();
+          const rawBirth = isModern ? fields[6].trim() : fields[5].trim();
+          
+          const dateMatch = rawBirth.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+          if (dateMatch) {
+            birthDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+          }
+        }
+      }
+      
+      dni = dni.trim().replace(/^0+/, '');
+      
+      if (dni && /^\d{6,10}$/.test(dni) && (lastName || firstName)) {
+        playBeep();
+        stopCamera();
+        
+        setScannedPerson({
+          dni,
+          first_name: firstName,
+          last_name: lastName,
+          gender: gender || 'M',
+          birth_date: birthDate,
+          qrData: rawText
+        });
+      }
+    } catch (err) {
+      console.error('[SCANNER] Error procesando datos del código:', err);
+    }
+  };
+
   // Iniciar cámara
   const startCamera = async () => {
     setScannedPerson(null);
@@ -62,7 +134,7 @@ export default function QRScanner() {
     
     try {
       const constraints = {
-        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
       };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -72,7 +144,20 @@ export default function QRScanner() {
         videoRef.current.srcObject = stream;
         videoRef.current.setAttribute('playsinline', 'true');
         videoRef.current.play();
-        animationFrameRef.current = requestAnimationFrame(scanLoop);
+        
+        // Inicializar ZXing BrowserMultiFormatReader
+        const codeReader = new BrowserMultiFormatReader();
+        codeReaderRef.current = codeReader;
+        
+        // Escaneo de video continuo de alto rendimiento
+        codeReader.decodeFromVideoElement(videoRef.current, (result, err) => {
+          if (result) {
+            processBarcodeData(result.getText());
+          }
+          if (err && !(err.name === 'NotFoundException')) {
+            console.error('[SCANNER] Error de lectura:', err);
+          }
+        });
       }
     } catch (err) {
       console.error('Error accediendo a la cámara:', err);
@@ -84,83 +169,14 @@ export default function QRScanner() {
   // Detener cámara
   const stopCamera = () => {
     setScanning(false);
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
+    if (codeReaderRef.current) {
+      codeReaderRef.current.reset();
+      codeReaderRef.current = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
-  };
-
-  // Ciclo continuo de escaneo QR
-  const scanLoop = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      // Dibujar frame en el canvas oculto
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert'
-      });
-
-      if (code) {
-        // QR detectado!
-        console.log('[QR-SCANNER] Encontrado QR:', code.data);
-        
-        try {
-          // Intentar parsear el DNI argentino localmente para mostrar confirmación
-          // Formato estándar: Tramite@Apellido@Nombre@Sexo@DNI@Ejemplar@FechaNac
-          const fields = code.data.split('@');
-          
-          if (fields.length >= 5) {
-            playBeep();
-            stopCamera();
-            
-            // Asumimos formato moderno (9 campos) o clásico
-            const isModern = fields[4] && /^\d{7,9}$/.test(fields[4].trim());
-            const dni = isModern ? fields[4].trim() : fields[1].trim();
-            const lastName = isModern ? fields[1].trim().toUpperCase() : fields[2].trim().toUpperCase();
-            const firstName = isModern ? fields[2].trim().toUpperCase() : fields[3].trim().toUpperCase();
-            const gender = isModern ? fields[3].trim().toUpperCase() : fields[4].trim().toUpperCase();
-            const rawBirth = isModern ? fields[6].trim() : fields[5].trim();
-            
-            // Formatear fecha
-            let birthDate = '';
-            const dateMatch = rawBirth.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
-            if (dateMatch) {
-              birthDate = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
-            }
-
-            setScannedPerson({
-              dni,
-              first_name: firstName,
-              last_name: lastName,
-              gender,
-              birth_date: birthDate,
-              qrData: code.data
-            });
-          } else {
-            // El QR contiene otra información
-            alert('Código QR leído, pero no parece ser un DNI argentino válido.');
-          }
-        } catch (err) {
-          console.error('[QR-SCANNER] Error decodificando QR:', err);
-        }
-        return;
-      }
-    }
-    
-    animationFrameRef.current = requestAnimationFrame(scanLoop);
   };
 
   useEffect(() => {
@@ -214,7 +230,7 @@ export default function QRScanner() {
             className="flex items-center justify-center gap-3 w-full py-5 bg-brand-primary hover:bg-blue-600 active:scale-[0.98] text-white font-semibold rounded-2xl shadow-lg shadow-blue-900/30 transition duration-200"
           >
             <Camera className="w-6 h-6" />
-            <span>ESCANEAR QR DNI</span>
+            <span>ESCANEAR DNI (QR / BARRAS)</span>
           </button>
           
           <button
@@ -253,8 +269,8 @@ export default function QRScanner() {
               <div className="absolute inset-0 bg-brand-primary/10 animate-pulse rounded-xl"></div>
             </div>
             
-            <div className="text-center bg-black/60 py-2 rounded-xl text-xs text-slate-300">
-              Coloque el código QR del DNI dentro del área delimitada.
+            <div className="text-center bg-black/60 py-2 rounded-xl text-xs text-slate-300 px-2">
+              Apunte al código de barras (frente) o QR (dorso) del DNI.
             </div>
           </div>
         </div>
