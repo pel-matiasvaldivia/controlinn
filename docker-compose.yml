@@ -1,0 +1,119 @@
+
+services:
+  # PostgreSQL - BD Principal
+  postgres:
+    image: postgres:15-alpine
+    container_name: control-acceso-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: access_control
+      POSTGRES_USER: ac_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-control123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Redis - Cache y Cola de Sincronización
+  redis:
+    image: redis:7-alpine
+    container_name: control-acceso-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  # Backend API
+  backend:
+    image: ghcr.io/pel-matiasvaldivia/controlinn/backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: control-acceso-backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: access_control
+      DB_USER: ac_user
+      DB_PASSWORD: ${DB_PASSWORD:-control123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-controlinn_secret_key_2026}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-controlinn_refresh_secret_key_2026}
+      RTSP_STREAM_URL: ${RTSP_URL:-rtsp://ffmpeg:8554/live/stream}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  # Frontend (Vite Dev Server en Desarrollo)
+  frontend:
+    image: ghcr.io/pel-matiasvaldivia/controlinn/frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: control-acceso-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3001:3001"
+    environment:
+      VITE_API_URL: /api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # FFmpeg - Conversión de RTSP a HLS
+  ffmpeg:
+    image: ghcr.io/pel-matiasvaldivia/controlinn/ffmpeg:latest
+    build:
+      context: ./ffmpeg
+      dockerfile: Dockerfile
+    container_name: control-acceso-ffmpeg
+    restart: unless-stopped
+    ports:
+      - "8554:8554" # RTSP server port (para emulación)
+      - "8080:8080" # HTTP port para acceder a HLS directamente si es necesario
+    environment:
+      RTSP_URL: ${RTSP_URL:-rtsp://localhost:8554/live/stream}
+    volumes:
+      - hls_streams:/app/streams
+
+  # Nginx - Reverse Proxy
+  nginx:
+    image: ghcr.io/pel-matiasvaldivia/controlinn/nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: control-acceso-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+      - ffmpeg
+    volumes:
+      - hls_streams:/var/www/streams:ro
+      - ./certs:/etc/nginx/certs:ro
+
+  # Adminer - Administración de BD
+  adminer:
+    image: adminer:latest
+    container_name: control-acceso-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+
+volumes:
+  postgres_data:
+  hls_streams:
