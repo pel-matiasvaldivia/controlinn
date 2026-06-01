@@ -79,7 +79,7 @@ services:
     container_name: control-acceso-ffmpeg
     restart: unless-stopped
     ports:
-      - "87554:8554" # RTSP server port (para emulación)
+      - "8754:8554" # RTSP server port (para emulación)
       - "8787:8080" # HTTP port para acceder a HLS directamente si es necesario
     environment:
       RTSP_URL: ${RTSP_URL:-rtsp://localhost:87554/live/stream}
