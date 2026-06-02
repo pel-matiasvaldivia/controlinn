@@ -10,13 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ericblade/quagga2": "^1.12.1",
     "@zxing/library": "^0.21.0",
     "axios": "^1.6.2",
     "hls.js": "^1.4.12",
     "jsqr": "^1.4.0",
     "localforage": "^1.10.0",
     "lucide-react": "^0.294.0",
-    "quagga": "^0.12.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zustand": "^4.4.7"

@@ -81,3 +81,33 @@
   color: #94a3b8;
   font-size: 0.8rem;
 }
+
+/* Estados de Éxito */
+.border-brand-success {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+  transition: all 0.3s ease;
+}
+
+.bg-brand-success\/20 {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+/* Animación de escaneo */
+.quagga-guide-overlay::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #4caf50;
+  box-shadow: 0 0 10px #4caf50;
+  animation: scan-line 2s infinite linear;
+}
+
+@keyframes scan-line {
+  0% { top: 0; }
+  50% { top: 100%; }
+  100% { top: 0; }
+}
