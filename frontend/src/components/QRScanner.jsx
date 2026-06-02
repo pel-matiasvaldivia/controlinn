@@ -147,8 +147,6 @@ export default function QRScanner() {
         }
       }
       
-      dni = dni.trim().replace(/^0+/, '');
-      
       if (dni && /^\d{6,10}$/.test(dni) && (lastName || firstName)) {
         playBeep();
         stopCamera();
@@ -161,14 +159,20 @@ export default function QRScanner() {
           birth_date: birthDate || '',
           qrData: cleanText
         });
+      } else {
+        console.warn('[SCANNER] Código detectado pero no es un DNI válido:', rawText);
+        useStore.getState().clearMessages();
+        set({ error: 'TOMA FALLIDA: El código escaneado no contiene un formato de DNI válido.' });
       }
     } catch (err) {
       console.error('[SCANNER] Error decodificando código:', err);
+      useStore.getState().clearMessages();
+      set({ error: 'TOMA FALLIDA: Error al procesar los datos del documento.' });
     }
   };
 
-  // Iniciar cámara y escaneo
   const startCamera = async () => {
+    useStore.getState().clearMessages();
     setScannedPerson(null);
     setManualMode(false);
     setScanning(true);

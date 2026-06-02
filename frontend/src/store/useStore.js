@@ -20,7 +20,12 @@ export const useStore = create((set, get) => ({
   successMsg: null,
 
   // --- ACCIONES ---
-  setTab: (tab) => set({ activeTab: tab }),
+  setTab: (tab) => {
+    get().clearMessages();
+    set({ activeTab: tab });
+  },
+
+  clearMessages: () => set({ error: null, successMsg: null }),
   
   setOnlineStatus: (status) => {
     const wasOffline = !get().online;
@@ -178,7 +183,7 @@ export const useStore = create((set, get) => ({
 
         set(state => ({
           logs: combineAndSortLogs([log, ...state.logs.filter(l => l.uuid !== uuid)], []),
-          successMsg: `${accessType === 'ENTRADA' ? 'Ingreso' : 'Egreso'} de ${person.first_name} ${person.last_name} registrado.`
+          successMsg: `${accessType === 'ENTRADA' ? 'Ingreso' : 'Egreso'} de ${person.first_name} ${person.last_name} registrado satisfactoriamente en la base de datos.`
         }));
 
       } else {
@@ -270,7 +275,7 @@ export const useStore = create((set, get) => ({
 
         set(state => ({
           logs: combineAndSortLogs([], [log, ...state.logs.filter(l => l.uuid !== uuid)]),
-          successMsg: `Vehículo ${vehicle.plate} registrado (${accessType === 'ENTRADA' ? 'Entrada' : 'Salida'}).`
+          successMsg: `Vehículo ${vehicle.plate} registrado satisfactoriamente en la base de datos (${accessType === 'ENTRADA' ? 'Entrada' : 'Salida'}).`
         }));
       } else {
         // MODO OFFLINE

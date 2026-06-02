@@ -116,6 +116,8 @@ export default function RTSPViewer() {
       // Enviar imagen al servicio OCR
       const response = await apiClient.post('/ocr/detect-plate', { image: base64Image });
       
+      useStore.getState().clearMessages();
+      
       if (response.data.success && response.data.plate) {
         setDetectedPlate(response.data.plate);
         setOcrConfidence(response.data.confidence);
@@ -125,11 +127,13 @@ export default function RTSPViewer() {
         }));
       } else {
         setDetectedPlate('');
-        alert(`No se detectó patente con claridad. Texto leído: "${response.data.rawText || 'vacío'}"`);
+        useStore.setState({ 
+          error: `TOMA FALLIDA: No se detectó patente con claridad. Texto leído: "${response.data.rawText || 'vacío'}"` 
+        });
       }
     } catch (err) {
       console.error('[CCTV] Error ejecutando OCR:', err);
-      alert('Error en el servicio OCR. Ingrese la patente manualmente.');
+      useStore.setState({ error: 'TOMA FALLIDA: Error en el servicio OCR. Ingrese la patente manualmente.' });
     } finally {
       setLoadingOcr(false);
     }
