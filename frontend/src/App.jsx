@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from './store/useStore';
 import Login from './pages/Login';
 import QRScanner from './components/QRScanner';
@@ -20,7 +20,7 @@ export default function App() {
     setTab 
   } = useStore();
 
-  const [showQuagga, setShowQuagga] = React.useState(false);
+  const [showQuagga, setShowQuagga] = useState(false);
 
   // Escuchar cambios de conexión de red
   useEffect(() => {
