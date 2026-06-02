@@ -10,11 +10,13 @@ const CAMERAS = [
 ];
 
 export default function RTSPViewer() {
-  const { registerVehicleAccess, online, error, successMsg } = useStore();
+  const { registerVehicleAccess, registerPersonAccess, online, error, successMsg } = useStore();
 
   const [activeCam, setActiveCam] = useState(CAMERAS[0]);
   const [loadingOcr, setLoadingOcr] = useState(false);
+  const [scanMode, setScanMode] = useState('PLATE'); // 'PLATE' | 'ID'
   const [detectedPlate, setDetectedPlate] = useState('');
+  const [detectedId, setDetectedId] = useState(null);
   const [ocrConfidence, setOcrConfidence] = useState(null);
   const [accessType, setAccessType] = useState('ENTRADA'); // 'ENTRADA' | 'SALIDA'
   const [previewImage, setPreviewImage] = useState(null);
@@ -24,7 +26,16 @@ export default function RTSPViewer() {
     plate: '',
     driver_name: '',
     driver_dni: '',
-    vehicle_type: 'AUTO' // 'AUTO' | 'CAMION' | 'MOTO' | 'UTILITARIO'
+    vehicle_type: 'AUTO'
+  });
+
+  // Datos de la persona (para modo ID)
+  const [personForm, setPersonForm] = useState({
+    dni: '',
+    first_name: '',
+    last_name: '',
+    gender: 'M',
+    birth_date: ''
   });
 
   const videoRef = useRef(null);
@@ -83,7 +94,50 @@ export default function RTSPViewer() {
     };
   }, [activeCam]);
 
-  // Capturar fotograma localmente del elemento de Video y enviarlo a OCR en backend
+  // Loop de detección de código de barras (PDF417) en modo ID
+  useEffect(() => {
+    let interval;
+    if (scanMode === 'ID' && videoRef.current) {
+      interval = setInterval(async () => {
+        const video = videoRef.current;
+        if (!video || !('BarcodeDetector' in window)) return;
+        
+        try {
+          const detector = new window.BarcodeDetector({ formats: ['pdf417', 'qr_code'] });
+          const barcodes = await detector.detect(video);
+          if (barcodes.length > 0) {
+            handleBarcodeDetected(barcodes[0].rawValue);
+          }
+        } catch (e) {}
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [scanMode]);
+
+  const handleBarcodeDetected = (rawText) => {
+    if (!rawText) return;
+    
+    // Parseo básico de PDF417 Argentino (DNI/Licencia)
+    const fields = rawText.split(/[@%|,]/).map(f => f.trim());
+    if (fields.length >= 3) {
+      let dniIndex = fields.findIndex(f => /^\d{7,9}$/.test(f));
+      if (dniIndex !== -1) {
+        const dni = fields[dniIndex];
+        const last_name = fields[dniIndex - 3] || fields[dniIndex + 1];
+        const first_name = fields[dniIndex - 2] || fields[dniIndex + 2];
+        
+        setPersonForm(prev => ({
+          ...prev,
+          dni: dni.replace(/^0+/, ''),
+          last_name: last_name ? last_name.toUpperCase() : prev.last_name,
+          first_name: first_name ? first_name.toUpperCase() : prev.first_name,
+        }));
+        setDetectedId({ dni, first_name, last_name });
+      }
+    }
+  };
+
+  // Capturar fotograma localmente y enviarlo al OCR correspondiente
   const handleCaptureFrame = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -91,49 +145,51 @@ export default function RTSPViewer() {
 
     setLoadingOcr(true);
     setDetectedPlate('');
+    setDetectedId(null);
     setOcrConfidence(null);
 
     try {
       const ctx = canvas.getContext('2d');
-      // Dimensiones de captura basadas en el video
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
-      
-      // Dibujar fotograma actual
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
-      // Convertir a base64 (JPEG)
       const base64Image = canvas.toDataURL('image/jpeg', 0.85);
       setPreviewImage(base64Image);
 
       if (!online) {
-        // Modo offline: no hay OCR backend disponible
-        alert('OCR no disponible sin conexión. Por favor, ingrese la patente manualmente.');
+        alert('OCR no disponible sin conexión. Ingrese datos manualmente.');
         setLoadingOcr(false);
         return;
       }
 
-      // Enviar imagen al servicio OCR
-      const response = await apiClient.post('/ocr/detect-plate', { image: base64Image });
+      const endpoint = scanMode === 'PLATE' ? '/ocr/detect-plate' : '/ocr/detect-id';
+      const response = await apiClient.post(endpoint, { image: base64Image });
       
       useStore.getState().clearMessages();
       
-      if (response.data.success && response.data.plate) {
-        setDetectedPlate(response.data.plate);
+      if (response.data.success) {
+        if (scanMode === 'PLATE') {
+          setDetectedPlate(response.data.plate);
+          setVehicleForm(prev => ({ ...prev, plate: response.data.plate }));
+        } else {
+          const idData = response.data.data;
+          setDetectedId(idData);
+          setPersonForm({
+            dni: idData.dni || '',
+            first_name: idData.first_name || '',
+            last_name: idData.last_name || '',
+            gender: idData.gender || 'M',
+            birth_date: idData.birth_date || ''
+          });
+        }
         setOcrConfidence(response.data.confidence);
-        setVehicleForm(prev => ({
-          ...prev,
-          plate: response.data.plate
-        }));
       } else {
-        setDetectedPlate('');
-        useStore.setState({ 
-          error: `TOMA FALLIDA: No se detectó patente con claridad. Texto leído: "${response.data.rawText || 'vacío'}"` 
-        });
+        useStore.setState({ error: 'No se detectó información legible. Reintente.' });
       }
     } catch (err) {
-      console.error('[CCTV] Error ejecutando OCR:', err);
-      useStore.setState({ error: 'TOMA FALLIDA: Error en el servicio OCR. Ingrese la patente manualmente.' });
+      console.error('[CCTV] Error OCR:', err);
+      useStore.setState({ error: 'Fallo en el servicio OCR.' });
     } finally {
       setLoadingOcr(false);
     }
@@ -142,33 +198,55 @@ export default function RTSPViewer() {
   // Enviar el registro de acceso vehicular
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!vehicleForm.plate) {
-      alert('La patente es requerida.');
-      return;
+    
+    if (scanMode === 'PLATE') {
+      if (!vehicleForm.plate) return alert('La patente es requerida.');
+      const dataToSend = { ...vehicleForm, photo: previewImage };
+      const success = await registerVehicleAccess(vehicleForm.plate.toUpperCase(), accessType, dataToSend);
+      if (success) {
+        setVehicleForm({ plate: '', driver_name: '', driver_dni: '', vehicle_type: 'AUTO' });
+        setPreviewImage(null);
+        setDetectedPlate('');
+      }
+    } else {
+      if (!personForm.dni) return alert('El DNI es requerido.');
+      const success = await registerPersonAccess(personForm.dni, accessType, { ...personForm, photo: previewImage });
+      if (success) {
+        setPersonForm({ dni: '', first_name: '', last_name: '', gender: 'M', birth_date: '' });
+        setPreviewImage(null);
+        setDetectedId(null);
+      }
     }
-
-    // Limpiar patente de caracteres raros excepto números y letras
-    const cleanPlate = vehicleForm.plate.trim().toUpperCase();
-
-    // Guardar imagen base64 de previsualización en el formulario si existe
-    const dataToSend = {
-      ...vehicleForm,
-      photo: previewImage
-    };
-
-    const success = await registerVehicleAccess(cleanPlate, accessType, dataToSend);
-    if (success) {
-      // Limpiar formulario al guardar con éxito
-      setVehicleForm({ plate: '', driver_name: '', driver_dni: '', vehicle_type: 'AUTO' });
-      setPreviewImage(null);
-      setDetectedPlate('');
-      setOcrConfidence(null);
-    }
+    setOcrConfidence(null);
   };
 
   return (
     <div className="flex flex-col gap-4">
       
+      {/* Selector de Modo */}
+      <div className="flex bg-brand-card p-1 rounded-xl border border-brand-border">
+        <button
+          type="button"
+          onClick={() => setScanMode('PLATE')}
+          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition flex items-center justify-center gap-2 ${
+            scanMode === 'PLATE' ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Video className="w-3 h-3" />
+          <span>VEHÍCULOS</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setScanMode('ID')}
+          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition flex items-center justify-center gap-2 ${
+            scanMode === 'ID' ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <ShieldAlert className="w-3 h-3" />
+          <span>DNI / PERSONAS</span>
+        </button>
+      </div>
+
       {/* Selector de Cámara */}
       <div className="flex flex-col gap-1">
         <label className="text-slate-400 text-xs font-semibold">Seleccionar Cámara CCTV</label>
@@ -196,14 +274,22 @@ export default function RTSPViewer() {
         {/* Overlay en vivo */}
         <div className="absolute top-3 left-3 flex items-center gap-2 bg-black/60 px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
           <span className="w-2.5 h-2.5 bg-brand-danger rounded-full animate-pulse"></span>
-          <span className="text-slate-200">CCTV EN VIVO</span>
+          <span className="text-slate-200">CCTV {scanMode === 'PLATE' ? 'PATENTES' : 'DOCUMENTOS'}</span>
         </div>
+
+        {/* Guía de encuadre para DNI */}
+        {scanMode === 'ID' && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-64 h-40 border-2 border-brand-primary border-dashed rounded-2xl bg-brand-primary/5 animate-pulse shadow-[0_0_20px_rgba(59,130,246,0.2)]"></div>
+            <div className="absolute top-[60%] text-[10px] text-brand-primary font-bold bg-black/40 px-2 py-1 rounded">ALINEAR DOCUMENTO AQUÍ</div>
+          </div>
+        )}
 
         {/* Botón de Captura sobre el video */}
         <button
           onClick={handleCaptureFrame}
           disabled={loadingOcr}
-          className="absolute bottom-4 right-4 flex items-center justify-center p-3 bg-brand-primary hover:bg-blue-600 text-white rounded-full shadow-lg hover:scale-105 transition duration-150 active:scale-95"
+          className="absolute bottom-4 right-4 flex items-center justify-center p-4 bg-brand-primary hover:bg-blue-600 text-white rounded-full shadow-lg hover:scale-105 transition duration-150 active:scale-95"
           title="Capturar fotograma para OCR"
         >
           {loadingOcr ? (
@@ -214,85 +300,81 @@ export default function RTSPViewer() {
         </button>
       </div>
 
-      {/* Formulario de Registro de Vehículo */}
+      {/* Formulario Dinámico */}
       <form onSubmit={handleSubmit} className="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl">
-        <h3 className="text-lg font-bold text-white mb-4">Registro de Vehículo</h3>
+        <h3 className="text-lg font-bold text-white mb-4">
+          {scanMode === 'PLATE' ? 'Registro de Vehículo' : 'Registro de Documento'}
+        </h3>
         
-        {/* Previsualización del fotograma capturado */}
+        {/* Previsualización */}
         {previewImage && (
           <div className="mb-4 relative w-32 h-24 rounded-lg overflow-hidden border border-brand-border/60 bg-black/40">
             <img src={previewImage} className="w-full h-full object-cover" alt="Captura" />
-            <button
-              type="button"
-              onClick={() => setPreviewImage(null)}
-              className="absolute top-1 right-1 p-0.5 bg-black/70 hover:bg-black/90 text-white rounded-full"
-            >
-              <span className="text-xs px-1">Quitar</span>
-            </button>
           </div>
         )}
 
         <div className="flex flex-col gap-4">
-          
-          {/* Patente y Tipo de Vehículo */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-slate-400 text-xs mb-1">Patente (Patente AR) *</label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white font-mono font-bold uppercase tracking-wider placeholder:text-slate-600"
-                placeholder="Ej: AA 123 BB"
-                value={vehicleForm.plate}
-                onChange={(e) => setVehicleForm({ ...vehicleForm, plate: e.target.value })}
-              />
-              {detectedPlate && (
-                <span className="text-[10px] text-brand-success font-semibold mt-1 block">
-                  OCR: {detectedPlate} ({ocrConfidence}%)
-                </span>
-              )}
+          {scanMode === 'PLATE' ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="block text-slate-400 text-xs mb-1">Patente (Patente AR) *</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary rounded-xl text-white font-mono font-bold uppercase tracking-wider"
+                  placeholder="Ej: AA 123 BB"
+                  value={vehicleForm.plate}
+                  onChange={(e) => setVehicleForm({ ...vehicleForm, plate: e.target.value })}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-slate-400 text-xs mb-1">Nombre Conductor</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-white"
+                  value={vehicleForm.driver_name}
+                  onChange={(e) => setVehicleForm({ ...vehicleForm, driver_name: e.target.value })}
+                />
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-slate-400 text-xs mb-1">Tipo de Vehículo</label>
-              <select
-                className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white"
-                value={vehicleForm.vehicle_type}
-                onChange={(e) => setVehicleForm({ ...vehicleForm, vehicle_type: e.target.value })}
-              >
-                <option value="AUTO">Automóvil</option>
-                <option value="CAMION">Camión</option>
-                <option value="UTILITARIO">Utilitario / Van</option>
-                <option value="MOTO">Motocicleta</option>
-                <option value="OTRO">Otro</option>
-              </select>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-slate-400 text-xs mb-1">Nro Documento / DNI *</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary rounded-xl text-white font-mono font-bold"
+                  value={personForm.dni}
+                  onChange={(e) => setPersonForm({ ...personForm, dni: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 text-xs mb-1">Apellido</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-white text-sm"
+                    value={personForm.last_name}
+                    onChange={(e) => setPersonForm({ ...personForm, last_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-xs mb-1">Nombre</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-white text-sm"
+                    value={personForm.first_name}
+                    onChange={(e) => setPersonForm({ ...personForm, first_name: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Conductor y DNI */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-slate-400 text-xs mb-1">Nombre Conductor</label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white placeholder:text-slate-600"
-                placeholder="Ej: Juan Perez"
-                value={vehicleForm.driver_name}
-                onChange={(e) => setVehicleForm({ ...vehicleForm, driver_name: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-slate-400 text-xs mb-1">DNI Conductor</label>
-              <input
-                type="text"
-                pattern="\d{7,9}"
-                className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white placeholder:text-slate-600"
-                placeholder="Ej: 30123456"
-                value={vehicleForm.driver_dni}
-                onChange={(e) => setVehicleForm({ ...vehicleForm, driver_dni: e.target.value })}
-              />
-            </div>
-          </div>
+          {ocrConfidence && (
+            <span className="text-[10px] text-brand-success font-semibold">OCR Confianza: {ocrConfidence}%</span>
+          )}
 
           {/* Tipo de Acceso */}
           <div>
