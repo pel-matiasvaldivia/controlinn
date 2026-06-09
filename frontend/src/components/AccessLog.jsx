@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Search, Download, Calendar, Filter, User, Car, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Search, Download, Calendar, Clock, Filter, User, Car, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
 export default function AccessLog() {
   const { logs } = useStore();
