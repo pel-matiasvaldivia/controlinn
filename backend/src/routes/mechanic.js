@@ -35,8 +35,8 @@ router.post('/salida', authenticateToken, async (req, res) => {
   const { client_name, uuid, timestamp } = req.body;
   const userId = req.user.id;
 
-  if (!plate) {
-    return res.status(400).json({ error: 'La patente es obligatoria.' });
+  if (!client_name) {
+    return res.status(400).json({ error: 'El nombre del cliente es obligatorio.' });
   }
 
   try {
