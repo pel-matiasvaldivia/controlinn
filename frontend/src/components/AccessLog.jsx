@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Search, Download, Calendar, Clock, Filter, User, Car, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Search, Download, Calendar, Clock, Filter, User, Car, ArrowUpRight, ArrowDownLeft, LogOut, MapPin, Building2 } from 'lucide-react';
 
 export default function AccessLog() {
-  const { logs } = useStore();
+  const { logs, registerPersonAccess, registerVehicleAccess } = useStore();
   
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('ALL'); // 'ALL' | 'ENTRADA' | 'SALIDA'
@@ -138,6 +138,20 @@ export default function AccessLog() {
             const date = new Date(log.timestamp);
             const isPerson = log.type === 'person';
             const isEntrada = log.access_type === 'ENTRADA';
+
+            const handleQuickExit = async () => {
+              if (isPerson) {
+                await registerPersonAccess(log.dni, 'SALIDA', {
+                  ...log,
+                  first_name: log.first_name,
+                  last_name: log.last_name
+                });
+              } else {
+                await registerVehicleAccess(log.plate, 'SALIDA', {
+                  ...log
+                });
+              }
+            };
             
             return (
               <div
@@ -169,9 +183,24 @@ export default function AccessLog() {
                         </span>
                       )}
                     </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2">
+                      {log.origin && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-brand-muted font-bold bg-brand-bg px-2 py-0.5 rounded-lg border border-brand-border/40 uppercase">
+                          <Building2 className="w-3 h-3 text-brand-primary" />
+                          <span className="opacity-70">De:</span> {log.origin}
+                        </div>
+                      )}
+                      {log.destination && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-brand-muted font-bold bg-brand-bg px-2 py-0.5 rounded-lg border border-brand-border/40 uppercase">
+                          <MapPin className="w-3 h-3 text-brand-success" />
+                          <span className="opacity-70">A:</span> {log.destination}
+                        </div>
+                      )}
+                    </div>
+
                     {log.reason && (
-                      <p className="text-[11px] text-brand-muted mt-1 italic border-l-2 border-brand-border pl-2 border-dashed">
-                        {log.reason}
+                      <p className="text-[11px] text-brand-muted mt-2 italic border-l-2 border-brand-border pl-2 border-dashed">
+                        Motivo: {log.reason}
                       </p>
                     )}
                     <div className="flex items-center gap-3 mt-1.5">
@@ -187,15 +216,29 @@ export default function AccessLog() {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-1.5 min-w-[80px]">
-                  <div className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-black text-xs shadow-sm ${
+                <div className="flex flex-col items-end gap-2.5 min-w-[100px]">
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs shadow-sm w-full justify-center ${
                     isEntrada ? 'bg-brand-success text-white' : 'bg-brand-warning text-white'
                   }`}>
-                    {isEntrada ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownLeft className="w-3.5 h-3.5" />}
+                    {isEntrada ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
                     {log.access_type}
                   </div>
+
+                  {isEntrada && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickExit();
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white rounded-xl font-bold text-[10px] transition group w-full justify-center border border-brand-primary/20 shadow-sm"
+                    >
+                      <LogOut className="w-3.5 h-3.5 group-hover:scale-110 transition" />
+                      SALIDA RÁPIDA
+                    </button>
+                  )}
+
                   {log.guard_name && (
-                    <span className="text-[10px] text-brand-muted font-bold uppercase truncate max-w-[100px]">
+                    <span className="text-[9px] text-brand-muted font-bold uppercase truncate max-w-[100px]">
                       Puesto: {log.guard_name}
                     </span>
                   )}
