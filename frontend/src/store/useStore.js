@@ -454,24 +454,50 @@ export const useStore = create((set, get) => ({
 
 // --- FUNCIONES AUXILIARES ---
 
-function combineAndSortLogs(peopleLogs = [], vehicleLogs = []) {
-  // Estandarizar estructuras para mostrar en un historial unificado
-  const cleanPeople = peopleLogs.map(l => ({
-    ...l,
-    type: 'person',
-    title: `${l.last_name}, ${l.first_name}`,
-    subtitle: `DNI: ${l.dni}`,
-    badge: 'PERSONA'
-  }));
+export function combineAndSortLogs(peopleLogs = [], vehicleLogs = []) {
+  // 1. Estandarizar estructuras base y ordenar de más viejo a más nuevo para emparejar
+  const allRaw = [
+    ...peopleLogs.map(l => ({ ...l, type: 'person', id_key: l.dni })),
+    ...vehicleLogs.map(l => ({ ...l, type: 'vehicle', id_key: l.plate }))
+  ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-  const cleanVehicles = vehicleLogs.map(l => ({
-    ...l,
-    type: 'vehicle',
-    title: l.plate,
-    subtitle: `Conductor: ${l.driver_name || 'N/C'}`,
-    badge: 'VEHÍCULO'
-  }));
+  const sessions = [];
+  const pendingEntradas = {}; // { 'person-12345678': indexInSessions }
 
-  // Combinar y ordenar desc
-  return [...cleanPeople, ...cleanVehicles].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  allRaw.forEach(log => {
+    const key = `${log.type}-${log.id_key}`;
+
+    if (log.access_type === 'ENTRADA') {
+      // Guardar entrada y registrar su índice para posible emparejamiento posterior
+      pendingEntradas[key] = sessions.length;
+      sessions.push({
+        ...log,
+        title: log.type === 'person' ? `${log.last_name}, ${log.first_name}` : log.plate,
+        subtitle: log.type === 'person' ? `DNI: ${log.dni}` : `Conductor: ${log.driver_name || 'N/C'}`,
+        badge: log.type === 'person' ? 'PERSONA' : 'VEHÍCULO',
+        exit_timestamp: null
+      });
+    } else {
+      // Es una SALIDA - Intentar emparejar
+      if (pendingEntradas[key] !== undefined) {
+        const index = pendingEntradas[key];
+        sessions[index].exit_timestamp = log.timestamp;
+        sessions[index].exit_synced = log.synced;
+        // Quitar de pendientes una vez cerrada la sesión
+        delete pendingEntradas[key];
+      } else {
+        // Salida sin entrada previa detectada (huérfana)
+        sessions.push({
+          ...log,
+          title: log.type === 'person' ? `${log.last_name}, ${log.first_name}` : log.plate,
+          subtitle: log.type === 'person' ? `DNI: ${log.dni}` : `Conductor: ${log.driver_name || 'N/C'}`,
+          badge: log.type === 'person' ? 'PERSONA' : 'VEHÍCULO',
+          exit_timestamp: log.timestamp // Marcamos como que solo tiene este tiempo
+        });
+      }
+    }
+  });
+
+  // Re-ordenar de más reciente a más antiguo (por tiempo de entrada/evento inicial)
+  return sessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 }

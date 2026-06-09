@@ -27,9 +27,10 @@ export default function AccessLog() {
   const exportToCSV = () => {
     if (filteredLogs.length === 0) return;
     
-    const headers = ['Fecha', 'Tipo', 'Categoría', 'Identificación', 'Detalle', 'Patente', 'Procedencia/Empresa', 'Destino', 'Motivo', 'Guardia'];
+    const headers = ['Fecha Entrada', 'Fecha Salida', 'Tipo', 'Categoría', 'Identificación', 'Detalle', 'Patente', 'Procedencia/Empresa', 'Destino', 'Motivo', 'Guardia'];
     const rows = filteredLogs.map(log => [
       new Date(log.timestamp).toLocaleString('es-AR'),
+      log.exit_timestamp ? new Date(log.exit_timestamp).toLocaleString('es-AR') : '',
       log.access_type,
       log.visitor_type || (log.type === 'person' ? 'CLIENTE' : 'VEHÍCULO'),
       log.title,
@@ -191,6 +192,7 @@ export default function AccessLog() {
                         </span>
                       )}
                     </div>
+                    
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2">
                       {log.origin && (
                         <div className="flex items-center gap-1.5 text-[11px] text-brand-muted font-bold bg-brand-bg px-2 py-0.5 rounded-lg border border-brand-border/40 uppercase">
@@ -211,28 +213,64 @@ export default function AccessLog() {
                         Motivo: {log.reason}
                       </p>
                     )}
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-[11px] text-brand-muted flex items-center gap-1 font-bold bg-brand-bg px-2 py-0.5 rounded-lg border border-brand-border/40 uppercase tracking-tight">
-                        <Calendar className="w-3 h-3" />
-                        {date.toLocaleDateString('es-AR')}
-                      </span>
-                      <span className="text-[11px] text-brand-muted flex items-center gap-1 font-bold bg-brand-bg px-2 py-0.5 rounded-lg border border-brand-border/40 uppercase tracking-tight">
-                        <Clock className="w-3 h-3" />
-                        {date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+
+                    <div className="flex flex-wrap items-center gap-3 mt-2.5">
+                      {/* Horario Ingreso */}
+                      <div className="flex flex-col">
+                        <span className="text-[8px] text-brand-muted font-black uppercase mb-0.5 ml-1">Ingreso</span>
+                        <div className="flex items-center gap-2 bg-brand-bg px-2.5 py-1 rounded-xl border border-brand-border/40">
+                          <span className="text-[10px] text-brand-text flex items-center gap-1 font-bold">
+                            <Calendar className="w-3 h-3 text-brand-primary" />
+                            {date.toLocaleDateString('es-AR')}
+                          </span>
+                          <span className="text-[10px] text-brand-text flex items-center gap-1 font-bold">
+                            <Clock className="w-3 h-3 text-brand-primary" />
+                            {date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Horario Egreso (si existe) */}
+                      {log.exit_timestamp && (
+                        <div className="flex flex-col">
+                          <span className="text-[8px] text-brand-warning font-black uppercase mb-0.5 ml-1">Egreso</span>
+                          <div className="flex items-center gap-2 bg-orange-50 px-2.5 py-1 rounded-xl border border-orange-200">
+                            <span className="text-[10px] text-orange-700 flex items-center gap-1 font-bold">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(log.exit_timestamp).toLocaleDateString('es-AR')}
+                            </span>
+                            <span className="text-[10px] text-orange-700 flex items-center gap-1 font-bold">
+                              <Clock className="w-3 h-3" />
+                              {new Date(log.exit_timestamp).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-2.5 min-w-[100px]">
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-xs shadow-sm w-full justify-center ${
-                    isEntrada ? 'bg-brand-success text-white' : 'bg-brand-warning text-white'
+                <div className="flex flex-col items-end gap-2.5 min-w-[110px]">
+                  {/* Status Badge */}
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[10px] shadow-sm w-full justify-center ${
+                    log.exit_timestamp 
+                      ? 'bg-slate-100 text-slate-500 border border-slate-200' 
+                      : (isEntrada ? 'bg-brand-success text-white' : 'bg-brand-warning text-white')
                   }`}>
-                    {isEntrada ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
-                    {log.access_type}
+                    {log.exit_timestamp ? (
+                      <>
+                        <Clock className="w-3.5 h-3.5" />
+                        COMPLETO
+                      </>
+                    ) : (
+                      <>
+                        {isEntrada ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
+                        {log.access_type}
+                      </>
+                    )}
                   </div>
 
-                  {isEntrada && (
+                  {isEntrada && !log.exit_timestamp && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -241,12 +279,12 @@ export default function AccessLog() {
                       className="flex items-center gap-1.5 px-3 py-2 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white rounded-xl font-bold text-[10px] transition group w-full justify-center border border-brand-primary/20 shadow-sm"
                     >
                       <LogOut className="w-3.5 h-3.5 group-hover:scale-110 transition" />
-                      SALIDA RÁPIDA
+                      MARCAR SALIDA
                     </button>
                   )}
 
                   {log.guard_name && (
-                    <span className="text-[9px] text-brand-muted font-bold uppercase truncate max-w-[100px]">
+                    <span className="text-[9px] text-brand-muted font-bold uppercase truncate max-w-[110px]">
                       Puesto: {log.guard_name}
                     </span>
                   )}
