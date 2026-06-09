@@ -8,7 +8,7 @@ export default function QRScanner() {
   const [scanning, setScanning] = useState(false);
   const [scannedPerson, setScannedPerson] = useState(null);
   const [accessType, setAccessType] = useState('ENTRADA'); // 'ENTRADA' | 'SALIDA'
-  const [manualMode, setManualMode] = useState(false);
+  const [manualMode, setManualMode] = useState(true);
   
   // Formulario manual
   const [manualForm, setManualForm] = useState({
@@ -302,25 +302,7 @@ export default function QRScanner() {
   return (
     <div className="flex flex-col gap-4">
       {/* Botones de acción principales */}
-      {!scanning && !scannedPerson && !manualMode && (
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={startCamera}
-            className="flex items-center justify-center gap-3 w-full py-5 bg-brand-primary hover:bg-blue-600 active:scale-[0.98] text-white font-semibold rounded-2xl shadow-lg shadow-blue-900/30 transition duration-200"
-          >
-            <Camera className="w-6 h-6" />
-            <span>ESCANEAR DNI (QR / BARRAS)</span>
-          </button>
-          
-          <button
-            onClick={() => setManualMode(true)}
-            className="flex items-center justify-center gap-3 w-full py-4 bg-brand-card hover:bg-brand-border text-brand-text border border-brand-border font-medium rounded-2xl active:scale-[0.98] transition duration-200"
-          >
-            <UserPlus className="w-5 h-5 text-brand-primary" />
-            <span>INGRESAR MANUALMENTE</span>
-          </button>
-        </div>
-      )}
+      {/* El modo manual es el predeterminado y el botón de escaneo ha sido removido */}
 
       {/* Visor de Cámara */}
       {scanning && (
@@ -435,13 +417,6 @@ export default function QRScanner() {
         <form onSubmit={handleManualSubmit} className="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-white">Ingreso Manual</h3>
-            <button
-              type="button"
-              onClick={() => setManualMode(false)}
-              className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-brand-border transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
 
           <div className="flex flex-col gap-4">

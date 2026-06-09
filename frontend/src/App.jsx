@@ -4,7 +4,6 @@ import Login from './pages/Login';
 import QRScanner from './components/QRScanner';
 import RTSPViewer from './components/RTSPViewer';
 import AccessLog from './components/AccessLog';
-import QRScannerQuagga from './components/QRScannerQuagga';
 import { User, Shield, Wifi, WifiOff, LogOut, ClipboardList, Camera, Car, RefreshCw } from 'lucide-react';
 
 export default function App() {
@@ -20,7 +19,6 @@ export default function App() {
     setTab 
   } = useStore();
 
-  const [showQuagga, setShowQuagga] = useState(false);
 
   // Escuchar cambios de conexión de red
   useEffect(() => {
@@ -115,13 +113,6 @@ export default function App() {
         <div className="max-w-md mx-auto h-full">
           {activeTab === 'personas' && (
             <div className="flex flex-col gap-4">
-              <button
-                onClick={() => setShowQuagga(true)}
-                className="w-full py-4 bg-brand-success hover:bg-green-600 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3 transition"
-              >
-                <Camera className="w-6 h-6" />
-                <span>ESCANEAR QR (QUAGGA2)</span>
-              </button>
               <QRScanner />
             </div>
           )}
@@ -130,16 +121,6 @@ export default function App() {
         </div>
       </main>
 
-      {showQuagga && (
-        <QRScannerQuagga
-          onClose={() => setShowQuagga(false)}
-          onSuccess={(data) => {
-            console.log('Quagga Success:', data);
-            // Aquí podríamos autocompletar el formulario de QRScanner si fuera necesario
-            setShowQuagga(false);
-          }}
-        />
-      )}
 
       {/* BARRA DE NAVEGACIÓN MÓVIL (Optimizada para 5-7 pulgadas) */}
       <nav className="bg-brand-card/95 backdrop-blur-md border-t border-brand-border/60 py-2 px-6 flex justify-around items-center fixed bottom-0 left-0 right-0 z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.4)]">
@@ -153,8 +134,8 @@ export default function App() {
               : 'text-slate-500 hover:text-slate-300'
           }`}
         >
-          <Camera className={`w-6 h-6 transition-transform ${activeTab === 'personas' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Escáner QR</span>
+          <ClipboardList className={`w-6 h-6 transition-transform ${activeTab === 'personas' ? 'scale-110' : ''}`} />
+          <span className="text-[10px] tracking-wide font-medium">Ingreso Personas</span>
         </button>
 
         {/* Tab Vehículos */}
