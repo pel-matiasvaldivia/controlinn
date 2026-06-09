@@ -140,15 +140,23 @@ export default function AccessLog() {
             const isEntrada = log.access_type === 'ENTRADA';
 
             const handleQuickExit = async () => {
+              const meta = {
+                origin: log.origin,
+                destination: log.destination,
+                visitor_type: log.visitor_type,
+                reason: log.reason,
+                plate: log.plate
+              };
+
               if (isPerson) {
                 await registerPersonAccess(log.dni, 'SALIDA', {
-                  ...log,
-                  first_name: log.first_name,
-                  last_name: log.last_name
+                  ...meta,
+                  personId: log.person_id
                 });
               } else {
                 await registerVehicleAccess(log.plate, 'SALIDA', {
-                  ...log
+                  ...meta,
+                  vehicleId: log.vehicle_id
                 });
               }
             };

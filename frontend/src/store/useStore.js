@@ -175,9 +175,11 @@ export const useStore = create((set, get) => ({
 
       // 1. Obtener/Crear persona
       if (online) {
-        // Si viene data de escaneo QR o formulario manual
-        if (manualData) {
-          // Si es QR, llamamos a scan. Si es manual formulario, creamos estándar
+        if (manualData && manualData.personId) {
+          // Si ya tenemos el ID (ej: desde el historial), lo usamos directamente
+          person = { id: manualData.personId, dni };
+        } else if (manualData) {
+          // Si viene data de escaneo QR o formulario manual para creación
           const isQr = manualData.qrData !== undefined;
           if (isQr) {
             const res = await apiClient.post('/persons/scan', { qrData: manualData.qrData });
@@ -187,7 +189,7 @@ export const useStore = create((set, get) => ({
             person = res.data;
           }
         } else {
-          // Solo DNI directo
+          // Solo DNI directo: buscar si existe
           const res = await apiClient.get(`/persons/${dni}`);
           person = res.data;
         }
@@ -299,15 +301,20 @@ export const useStore = create((set, get) => ({
       let vehicle = null;
 
       if (online) {
-        // 1. Obtener o crear vehículo en backend
-        const resVeh = await apiClient.post('/vehicles', {
-          plate: normalizedPlate,
-          driver_name: manualData?.driver_name,
-          driver_dni: manualData?.driver_dni,
-          vehicle_type: manualData?.vehicle_type,
-          photo: manualData?.photo
-        });
-        vehicle = resVeh.data;
+        if (manualData && manualData.vehicleId) {
+          // Si ya tenemos el ID, lo usamos directamente
+          vehicle = { id: manualData.vehicleId, plate: normalizedPlate };
+        } else {
+          // 1. Obtener o crear vehículo en backend
+          const resVeh = await apiClient.post('/vehicles', {
+            plate: normalizedPlate,
+            driver_name: manualData?.driver_name,
+            driver_dni: manualData?.driver_dni,
+            vehicle_type: manualData?.vehicle_type,
+            photo: manualData?.photo
+          });
+          vehicle = resVeh.data;
+        }
 
         // 2. Registrar acceso online
         const route = accessType === 'ENTRADA' ? '/vehicle-access/entrada' : '/vehicle-access/salida';
