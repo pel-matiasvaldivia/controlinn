@@ -14,9 +14,7 @@ export default function QRScanner() {
   const [manualForm, setManualForm] = useState({
     dni: '',
     first_name: '',
-    last_name: '',
-    gender: 'M',
-    birth_date: ''
+    last_name: ''
   });
 
   const videoRef = useRef(null);
@@ -295,7 +293,7 @@ export default function QRScanner() {
 
     if (success) {
       setManualMode(false);
-      setManualForm({ dni: '', first_name: '', last_name: '', gender: 'M', birth_date: '' });
+      setManualForm({ dni: '', first_name: '', last_name: '' });
     }
   };
 
@@ -459,29 +457,6 @@ export default function QRScanner() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-slate-400 text-xs mb-1">Sexo</label>
-                <select
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white"
-                  value={manualForm.gender}
-                  onChange={(e) => setManualForm({ ...manualForm, gender: e.target.value })}
-                >
-                  <option value="M">Masculino</option>
-                  <option value="F">Femenino</option>
-                  <option value="X">No Binario / Otro</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-slate-400 text-xs mb-1">Fecha de Nacimiento</label>
-                <input
-                  type="date"
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white"
-                  value={manualForm.birth_date}
-                  onChange={(e) => setManualForm({ ...manualForm, birth_date: e.target.value })}
-                />
-              </div>
-            </div>
 
             {/* Selector de Acceso */}
             <div>
