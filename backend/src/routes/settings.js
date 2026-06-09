@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/db');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
 // GET /settings/sectors - Obtener lista de sectores
 router.get('/sectors', authenticateToken, async (req, res) => {
