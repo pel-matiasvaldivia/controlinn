@@ -224,36 +224,36 @@ export default function RTSPViewer() {
     <div className="flex flex-col gap-4">
       
       {/* Selector de Modo */}
-      <div className="flex bg-brand-card p-1 rounded-xl border border-brand-border">
+      <div className="flex bg-brand-card p-1 rounded-2xl border border-brand-border shadow-sm">
         <button
           type="button"
           onClick={() => setScanMode('PLATE')}
-          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition flex items-center justify-center gap-2 ${
-            scanMode === 'PLATE' ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-white'
+          className={`flex-1 py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+            scanMode === 'PLATE' ? 'bg-brand-primary text-white shadow-md' : 'text-brand-muted hover:text-brand-text'
           }`}
         >
-          <Video className="w-3 h-3" />
+          <Video className="w-4 h-4" />
           <span>VEHÍCULOS</span>
         </button>
         <button
           type="button"
           onClick={() => setScanMode('ID')}
-          className={`flex-1 py-2 rounded-lg text-[10px] font-bold transition flex items-center justify-center gap-2 ${
-            scanMode === 'ID' ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-white'
+          className={`flex-1 py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+            scanMode === 'ID' ? 'bg-brand-primary text-white shadow-md' : 'text-brand-muted hover:text-brand-text'
           }`}
         >
-          <ShieldAlert className="w-3 h-3" />
-          <span>DNI / PERSONAS</span>
+          <ShieldAlert className="w-4 h-4" />
+          <span>DOCUMENTOS</span>
         </button>
       </div>
 
       {/* Selector de Cámara */}
-      <div className="flex flex-col gap-1">
-        <label className="text-slate-400 text-xs font-semibold">Seleccionar Cámara CCTV</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-brand-muted text-sm font-bold uppercase tracking-wide px-1">Cámara CCTV</label>
         <select
           value={activeCam.id}
           onChange={(e) => setActiveCam(CAMERAS.find(c => c.id === e.target.value))}
-          className="w-full px-4 py-3 bg-brand-card border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white font-medium"
+          className="w-full px-4 py-3.5 bg-brand-card border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base font-bold shadow-sm"
         >
           {CAMERAS.map(cam => (
             <option key={cam.id} value={cam.id}>{cam.name}</option>
@@ -301,9 +301,9 @@ export default function RTSPViewer() {
       </div>
 
       {/* Formulario Dinámico */}
-      <form onSubmit={handleSubmit} className="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl">
-        <h3 className="text-lg font-bold text-white mb-4">
-          {scanMode === 'PLATE' ? 'Registro de Vehículo' : 'Registro de Documento'}
+      <form onSubmit={handleSubmit} className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-lg">
+        <h3 className="text-xl font-bold text-brand-text mb-5">
+          {scanMode === 'PLATE' ? 'Registrar Vehículo' : 'Registrar Persona'}
         </h3>
         
         {/* Previsualización */}
@@ -315,55 +315,56 @@ export default function RTSPViewer() {
 
         <div className="flex flex-col gap-4">
           {scanMode === 'PLATE' ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="block text-slate-400 text-xs mb-1">Patente (Patente AR) *</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1.5 px-1">Patente detectada *</label>
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary rounded-xl text-white font-mono font-bold uppercase tracking-wider"
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary rounded-xl text-brand-text font-mono font-black text-2xl tracking-widest uppercase text-center"
                   placeholder="Ej: AA 123 BB"
                   value={vehicleForm.plate}
-                  onChange={(e) => setVehicleForm({ ...vehicleForm, plate: e.target.value })}
+                  onChange={(e) => setVehicleForm({ ...vehicleForm, plate: e.target.value.toUpperCase() })}
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-slate-400 text-xs mb-1">Nombre Conductor</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1.5 px-1">Conductor (Opcional)</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-white"
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border rounded-xl text-brand-text text-base font-semibold"
+                  placeholder="Nombre y Apellido"
                   value={vehicleForm.driver_name}
                   onChange={(e) => setVehicleForm({ ...vehicleForm, driver_name: e.target.value })}
                 />
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               <div>
-                <label className="block text-slate-400 text-xs mb-1">Nro Documento / DNI *</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1.5 px-1">DNI Detectado *</label>
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary rounded-xl text-white font-mono font-bold"
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary rounded-xl text-brand-text font-mono font-black text-xl tracking-widest text-center"
                   value={personForm.dni}
                   onChange={(e) => setPersonForm({ ...personForm, dni: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 text-xs mb-1">Apellido</label>
+                  <label className="block text-brand-muted text-[10px] font-bold uppercase tracking-wide mb-1 px-1">Apellido</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-white text-sm"
+                    className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border rounded-xl text-brand-text text-base font-bold uppercase"
                     value={personForm.last_name}
                     onChange={(e) => setPersonForm({ ...personForm, last_name: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 text-xs mb-1">Nombre</label>
+                  <label className="block text-brand-muted text-[10px] font-bold uppercase tracking-wide mb-1 px-1">Nombre</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-white text-sm"
+                    className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border rounded-xl text-brand-text text-base font-bold uppercase"
                     value={personForm.first_name}
                     onChange={(e) => setPersonForm({ ...personForm, first_name: e.target.value })}
                   />
@@ -378,15 +379,15 @@ export default function RTSPViewer() {
 
           {/* Tipo de Acceso */}
           <div>
-            <label className="block text-slate-400 text-xs mb-1">Registro de Tránsito</label>
-            <div className="flex gap-3">
+            <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-2 px-1">Tipo de Registro</label>
+            <div className="flex gap-4">
               <button
                 type="button"
                 onClick={() => setAccessType('ENTRADA')}
-                className={`flex-1 py-3 font-semibold rounded-xl border transition ${
+                className={`flex-1 py-4 font-black rounded-2xl border transition text-base shadow-sm ${
                   accessType === 'ENTRADA'
-                    ? 'bg-brand-success border-brand-success text-white'
-                    : 'bg-transparent border-brand-border text-slate-400 hover:text-white'
+                    ? 'bg-brand-success border-brand-success text-white shadow-md'
+                    : 'bg-brand-bg border-brand-border text-brand-muted hover:bg-slate-50'
                 }`}
               >
                 ENTRADA
@@ -394,10 +395,10 @@ export default function RTSPViewer() {
               <button
                 type="button"
                 onClick={() => setAccessType('SALIDA')}
-                className={`flex-1 py-3 font-semibold rounded-xl border transition ${
+                className={`flex-1 py-4 font-black rounded-2xl border transition text-base shadow-sm ${
                   accessType === 'SALIDA'
-                    ? 'bg-brand-warning border-brand-warning text-white'
-                    : 'bg-transparent border-brand-border text-slate-400 hover:text-white'
+                    ? 'bg-brand-warning border-brand-warning text-white shadow-md'
+                    : 'bg-brand-bg border-brand-border text-brand-muted hover:bg-slate-50'
                 }`}
               >
                 SALIDA

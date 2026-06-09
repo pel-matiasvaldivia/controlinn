@@ -37,38 +37,38 @@ export default function Settings() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-brand-primary/20 text-brand-primary rounded-xl border border-brand-primary/30">
+      <div className="flex items-center gap-3 pb-1">
+        <div className="p-2.5 bg-brand-primary/10 text-brand-primary rounded-xl border border-brand-primary/20">
           <SettingsIcon className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-white font-bold text-base">Configuración del Sistema</h2>
-          <p className="text-slate-400 text-xs">Sectores / destinos disponibles en el formulario de ingreso</p>
+          <h2 className="text-brand-text font-bold text-lg">Configuración</h2>
+          <p className="text-brand-muted text-sm font-medium">Gestionar sectores y destinos</p>
         </div>
       </div>
 
       {/* Sectores actuales */}
-      <div className="bg-brand-card rounded-2xl border border-brand-border p-4 flex flex-col gap-3">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Sectores Configurados</h3>
+      <div className="bg-brand-card rounded-2xl border border-brand-border p-5 flex flex-col gap-4 shadow-sm">
+        <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider">Sectores Registrados</h3>
 
         {localSectors.length === 0 && (
-          <p className="text-slate-500 text-sm italic">No hay sectores configurados.</p>
+          <p className="text-brand-muted text-sm italic py-4 text-center">No hay sectores configurados aún.</p>
         )}
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           {localSectors.map((sector) => (
             <div
               key={sector}
-              className="flex items-center justify-between px-4 py-2.5 bg-brand-bg border border-brand-border/50 rounded-xl"
+              className="flex items-center justify-between px-4 py-3 bg-brand-bg border border-brand-border rounded-xl"
             >
-              <span className="text-white text-sm font-medium">{sector}</span>
+              <span className="text-brand-text text-base font-bold">{sector}</span>
               {isAdmin && (
                 <button
                   onClick={() => handleRemove(sector)}
-                  className="p-1 text-slate-500 hover:text-brand-danger rounded-lg transition"
+                  className="p-1.5 text-brand-muted hover:text-brand-danger hover:bg-brand-danger/10 rounded-lg transition"
                   title="Eliminar sector"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               )}
             </div>
@@ -77,21 +77,21 @@ export default function Settings() {
 
         {/* Agregar nuevo sector (solo admin) */}
         {isAdmin && (
-          <div className="flex gap-2 mt-1">
+          <div className="flex gap-3 mt-2">
             <input
               type="text"
-              className="flex-1 px-4 py-2.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white text-sm"
-              placeholder="Nuevo sector..."
+              className="flex-1 px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base font-medium"
+              placeholder="Ej: Depósito..."
               value={newSector}
               onChange={(e) => setNewSector(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
             <button
               onClick={handleAdd}
-              className="p-2.5 bg-brand-primary hover:bg-blue-600 text-white rounded-xl transition"
+              className="p-3.5 bg-brand-primary hover:bg-blue-600 text-white rounded-xl transition shadow-md"
               title="Agregar"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-6 h-6" />
             </button>
           </div>
         )}
@@ -102,26 +102,28 @@ export default function Settings() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center justify-center gap-2 w-full py-4 bg-brand-primary hover:bg-blue-600 disabled:opacity-60 text-white font-bold rounded-2xl transition"
+          className={`flex items-center justify-center gap-2 w-full py-4 font-black text-lg rounded-2xl transition shadow-lg ${
+            saved ? 'bg-brand-success text-white' : 'bg-brand-primary hover:bg-blue-600 text-white disabled:opacity-60'
+          }`}
         >
           {saved ? (
             <>
-              <Check className="w-5 h-5 text-brand-success" />
-              <span>¡Guardado!</span>
+              <Check className="w-6 h-6" />
+              <span>CAMBIOS GUARDADOS</span>
             </>
           ) : (
             <>
-              <Save className="w-5 h-5" />
-              <span>{saving ? 'Guardando...' : 'Guardar Cambios'}</span>
+              <Save className="w-6 h-6" />
+              <span>{saving ? 'GUARDANDO...' : 'GUARDAR CONFIGURACIÓN'}</span>
             </>
           )}
         </button>
       )}
 
       {!isAdmin && (
-        <p className="text-slate-500 text-sm text-center italic">
-          Solo los administradores pueden modificar los sectores.
-        </p>
+        <div className="p-4 bg-brand-bg border border-brand-border rounded-xl text-brand-muted text-sm text-center font-medium italic">
+          Solo los administradores pueden modificar la lista de sectores.
+        </div>
       )}
     </div>
   );

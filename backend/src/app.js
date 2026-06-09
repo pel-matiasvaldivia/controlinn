@@ -40,6 +40,7 @@ const syncRouter = require('./routes/sync');
 const ocrRouter = require('./routes/ocr');
 const rtspRouter = require('./routes/rtsp');
 const settingsRouter = require('./routes/settings');
+const mechanicRouter = require('./routes/mechanic');
 
 app.use('/api/auth', authRouter);
 app.use('/api/persons', personsRouter);
@@ -50,6 +51,7 @@ app.use('/api/sync', syncRouter);
 app.use('/api/ocr', ocrRouter);
 app.use('/api/rtsp', rtspRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/mechanic', mechanicRouter);
 
 // Ruta de estado general (Health Check)
 app.get('/api/health', (req, res) => {

@@ -8,14 +8,15 @@ export default {
     extend: {
       colors: {
         brand: {
-          bg: '#0B0F19',      // Fondo oscuro profundo
-          card: '#151C2C',    // Tarjetas gris azuladas premium
-          border: '#222F43',  // Bordes sutiles
-          text: '#F3F4F6',    // Texto claro
-          primary: '#3B82F6', // Azul principal de la marca
-          success: '#10B981', // Verde éxito
-          warning: '#F59E0B', // Naranja advertencia
-          danger: '#EF4444'   // Rojo peligro
+          bg: '#F0F4FF',       // Fondo azul-blanco muy suave
+          card: '#FFFFFF',     // Tarjetas blancas
+          border: '#CBD5E1',   // Bordes gris claro
+          text: '#1E293B',     // Texto oscuro legible
+          muted: '#64748B',    // Texto secundario
+          primary: '#2563EB',  // Azul principal
+          success: '#16A34A',  // Verde éxito
+          warning: '#D97706',  // Naranja advertencia
+          danger: '#DC2626'    // Rojo peligro
         }
       },
       fontFamily: {

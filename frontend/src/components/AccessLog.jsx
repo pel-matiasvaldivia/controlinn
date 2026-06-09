@@ -72,10 +72,10 @@ export default function AccessLog() {
         
         {/* Barra de búsqueda */}
         <div className="relative">
-          <Search className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-500" />
+          <Search className="absolute left-4 top-4 w-5 h-5 text-brand-muted" />
           <input
             type="text"
-            className="w-full pl-11 pr-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white text-sm"
+            className="w-full pl-12 pr-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base"
             placeholder="Buscar por DNI, patente, nombre..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -83,27 +83,27 @@ export default function AccessLog() {
         </div>
 
         {/* selectores de filtro */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <label className="text-slate-400 font-semibold mb-1 block">Categoría</label>
+            <label className="text-brand-muted font-bold mb-1.5 block uppercase text-[10px] tracking-wider">Categoría</label>
             <select
-              className="w-full px-3 py-2.5 bg-brand-bg border border-brand-border rounded-lg text-white"
+              className="w-full px-3 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text text-sm font-medium"
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
             >
-              <option value="ALL">Personas y Vehículos</option>
-              <option value="person">Solo Personas</option>
-              <option value="vehicle">Solo Vehículos</option>
+              <option value="ALL">Todos</option>
+              <option value="person">Personas</option>
+              <option value="vehicle">Vehículos</option>
             </select>
           </div>
           <div>
-            <label className="text-slate-400 font-semibold mb-1 block">Tránsito</label>
+            <label className="text-brand-muted font-bold mb-1.5 block uppercase text-[10px] tracking-wider">Tránsito</label>
             <select
-              className="w-full px-3 py-2.5 bg-brand-bg border border-brand-border rounded-lg text-white"
+              className="w-full px-3 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text text-sm font-medium"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
             >
-              <option value="ALL">Cualquier Movimiento</option>
+              <option value="ALL">Todos</option>
               <option value="ENTRADA">Entradas</option>
               <option value="SALIDA">Salidas</option>
             </select>
@@ -113,22 +113,22 @@ export default function AccessLog() {
         {/* Botón Exportar */}
         <button
           onClick={exportToCSV}
-          className="w-full py-3 bg-brand-border hover:bg-slate-700 active:scale-[0.98] text-white font-semibold rounded-xl flex items-center justify-center gap-2 text-sm border border-brand-border transition"
+          className="w-full py-3.5 bg-brand-bg hover:bg-slate-100 active:scale-[0.98] text-brand-text font-bold rounded-xl flex items-center justify-center gap-2 text-sm border border-brand-border transition shadow-sm"
         >
-          <Download className="w-4 h-4" />
-          <span>EXPORTAR TABLA (CSV)</span>
+          <Download className="w-5 h-5 text-brand-primary" />
+          <span>DESCARGAR REPORTE (CSV)</span>
         </button>
       </div>
 
       {/* Lista de Registros */}
       <div className="flex flex-col gap-2.5">
         <div className="flex justify-between items-center px-1">
-          <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Historial de Accesos</span>
-          <span className="text-xs text-slate-500 font-semibold">{filteredLogs.length} registros</span>
+          <span className="text-sm text-brand-muted font-bold uppercase tracking-widest">Historial</span>
+          <span className="text-sm text-brand-muted font-semibold bg-brand-bg px-3 py-1 rounded-full border border-brand-border">{filteredLogs.length}</span>
         </div>
 
         {filteredLogs.length === 0 ? (
-          <div className="bg-brand-card py-10 text-center rounded-2xl border border-brand-border/60 text-slate-500 text-sm">
+          <div className="bg-brand-card py-16 text-center rounded-2xl border border-brand-border text-brand-muted text-base font-medium">
             No se encontraron movimientos registrados.
           </div>
         ) : (
@@ -141,7 +141,7 @@ export default function AccessLog() {
               return (
                 <div
                   key={log.uuid || log.id}
-                  className="bg-brand-card p-4 rounded-xl border border-brand-border/60 flex items-center justify-between shadow-sm relative overflow-hidden"
+                  className="bg-brand-card p-4 rounded-2xl border border-brand-border flex items-center justify-between shadow-sm relative overflow-hidden"
                 >
                   {/* Indicador de Sincronización en segundo plano */}
                   {!log.synced && (
@@ -157,12 +157,17 @@ export default function AccessLog() {
                     </div>
 
                     <div className="flex flex-col">
-                      <span className="text-white font-bold text-sm tracking-wide leading-tight">{log.title}</span>
-                      <span className="text-slate-400 text-xs mt-0.5">{log.subtitle}</span>
-                      <span className="text-[10px] text-slate-500 mt-1 flex items-center gap-1 font-medium">
-                        <Calendar className="w-3 h-3" />
-                        {date.toLocaleDateString('es-AR')} {date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <span className="text-brand-text font-bold text-base tracking-wide leading-tight">{log.title}</span>
+                      <span className="text-brand-muted text-sm mt-0.5 font-medium">{log.subtitle}</span>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <span className="text-[11px] text-brand-muted flex items-center gap-1 font-bold bg-brand-bg px-2 py-0.5 rounded-lg border border-brand-border/40 uppercase tracking-tight">
+                          <Calendar className="w-3 h-3" />
+                          {date.toLocaleDateString('es-AR')}
+                        </span>
+                        <span className="text-[11px] text-brand-muted flex items-center gap-1 font-bold bg-brand-bg px-2 py-0.5 rounded-lg border border-brand-border/40">
+                          <Clock className="absolute invisible" /> {date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

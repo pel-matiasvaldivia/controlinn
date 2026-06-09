@@ -73,6 +73,21 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   timestamp TIMESTAMP DEFAULT NOW()
 );
 
+-- Tabla de Servicio Mecánico (motos agendadas)
+CREATE TABLE IF NOT EXISTS mechanic_services (
+  id SERIAL PRIMARY KEY,
+  uuid VARCHAR(50) UNIQUE,
+  plate VARCHAR(20) NOT NULL,
+  brand VARCHAR(100),
+  model VARCHAR(100),
+  client_name VARCHAR(150),
+  access_type VARCHAR(10) NOT NULL, -- 'ENTRADA' | 'SALIDA'
+  timestamp TIMESTAMP DEFAULT NOW(),
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  synced BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Tabla de Configuración / Ajustes
 CREATE TABLE IF NOT EXISTS settings (
   key VARCHAR(50) PRIMARY KEY,

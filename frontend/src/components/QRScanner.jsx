@@ -342,64 +342,64 @@ export default function QRScanner() {
       {scannedPerson && (
         <div className="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl">
           <div className="flex justify-between items-start mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Check className="w-5 h-5 text-brand-success" />
+            <h3 className="text-xl font-bold text-brand-text flex items-center gap-2">
+              <Check className="w-6 h-6 text-brand-success" />
               <span>DNI Detectado</span>
             </h3>
             <button
               onClick={() => setScannedPerson(null)}
-              className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-brand-border transition"
+              className="p-1 text-brand-muted hover:text-brand-danger rounded-lg hover:bg-brand-bg transition"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm mb-5 bg-brand-bg/50 p-4 rounded-xl border border-brand-border/40">
+          <div className="grid grid-cols-2 gap-4 text-base mb-6 bg-brand-bg p-4 rounded-xl border border-brand-border shadow-inner">
             <div>
-              <span className="text-slate-400 text-xs">Apellido</span>
-              <p className="font-semibold text-white">{scannedPerson.last_name}</p>
+              <span className="text-brand-muted text-xs font-bold uppercase tracking-wider">Apellido</span>
+              <p className="font-bold text-brand-text text-lg">{scannedPerson.last_name}</p>
             </div>
             <div>
-              <span className="text-slate-400 text-xs">Nombre</span>
-              <p className="font-semibold text-white">{scannedPerson.first_name}</p>
+              <span className="text-brand-muted text-xs font-bold uppercase tracking-wider">Nombre</span>
+              <p className="font-bold text-brand-text text-lg">{scannedPerson.first_name}</p>
             </div>
             <div>
-              <span className="text-slate-400 text-xs">DNI</span>
-              <p className="font-mono font-bold text-brand-primary">{scannedPerson.dni}</p>
+              <span className="text-brand-muted text-xs font-bold uppercase tracking-wider">DNI</span>
+              <p className="font-mono font-black text-brand-primary text-xl">{scannedPerson.dni}</p>
             </div>
             <div>
-              <span className="text-slate-400 text-xs">Sexo</span>
-              <p className="font-semibold text-white">{scannedPerson.gender}</p>
+              <span className="text-brand-muted text-xs font-bold uppercase tracking-wider">Sexo</span>
+              <p className="font-bold text-brand-text text-lg">{scannedPerson.gender}</p>
             </div>
+          </div>
             {scannedPerson.birth_date && (
               <div className="col-span-2">
-                <span className="text-slate-400 text-xs">Fecha de Nacimiento</span>
-                <p className="font-semibold text-white">{scannedPerson.birth_date}</p>
+                <span className="text-brand-muted text-xs font-bold uppercase tracking-wider">Fecha de Nacimiento</span>
+                <p className="font-bold text-brand-text text-lg">{scannedPerson.birth_date}</p>
               </div>
             )}
-          </div>
 
           {/* Selector de tipo de acceso */}
           <div className="flex gap-3 mb-4">
             <button
               onClick={() => setAccessType('ENTRADA')}
-              className={`flex-1 py-3 font-semibold rounded-xl border transition ${
+              className={`flex-1 py-4 font-bold rounded-xl border transition text-base ${
                 accessType === 'ENTRADA'
-                  ? 'bg-brand-success border-brand-success text-white'
-                  : 'bg-transparent border-brand-border text-slate-400 hover:text-white'
+                  ? 'bg-brand-success border-brand-success text-white shadow-md'
+                  : 'bg-brand-bg border-brand-border text-brand-muted hover:bg-slate-100'
               }`}
             >
-              INGRESAR (ENTRADA)
+              ENTRADA
             </button>
             <button
               onClick={() => setAccessType('SALIDA')}
-              className={`flex-1 py-3 font-semibold rounded-xl border transition ${
+              className={`flex-1 py-4 font-bold rounded-xl border transition text-base ${
                 accessType === 'SALIDA'
-                  ? 'bg-brand-warning border-brand-warning text-white'
-                  : 'bg-transparent border-brand-border text-slate-400 hover:text-white'
+                  ? 'bg-brand-warning border-brand-warning text-white shadow-md'
+                  : 'bg-brand-bg border-brand-border text-brand-muted hover:bg-slate-100'
               }`}
             >
-              EGRESAR (SALIDA)
+              SALIDA
             </button>
           </div>
 
@@ -415,20 +415,20 @@ export default function QRScanner() {
 
       {/* Formulario Manual */}
       {manualMode && (
-        <form onSubmit={handleManualSubmit} className="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-white">Ingreso Manual</h3>
+        <form onSubmit={handleManualSubmit} className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-lg">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="text-xl font-bold text-brand-text">Ingreso Manual</h3>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             <div>
-              <label className="block text-slate-400 text-xs mb-1">DNI *</label>
+              <label className="block text-brand-muted text-sm font-bold uppercase tracking-wide mb-1.5 px-1">DNI del Visitante *</label>
               <input
                 type="text"
                 pattern="\d{7,9}"
                 maxLength="9"
                 required
-                className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white font-mono"
+                className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-mono text-xl tracking-widest"
                 placeholder="Ej: 28543593"
                 value={manualForm.dni}
                 onChange={(e) => setManualForm({ ...manualForm, dni: e.target.value })}
@@ -437,22 +437,22 @@ export default function QRScanner() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-400 text-xs mb-1">Apellido *</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">Apellido *</label>
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white uppercase"
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text uppercase font-semibold text-base"
                   placeholder="SOSA"
                   value={manualForm.last_name}
                   onChange={(e) => setManualForm({ ...manualForm, last_name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-slate-400 text-xs mb-1">Nombre *</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">Nombre *</label>
                 <input
                   type="text"
                   required
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white uppercase"
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text uppercase font-semibold text-base"
                   placeholder="MARIA"
                   value={manualForm.first_name}
                   onChange={(e) => setManualForm({ ...manualForm, first_name: e.target.value })}
@@ -460,13 +460,12 @@ export default function QRScanner() {
               </div>
             </div>
 
-            {/* Patente, Origen, Destino */}
             <div>
-              <label className="block text-slate-400 text-xs mb-1">Patente del Vehículo (opcional)</label>
+              <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">Patente Vehículo (Persona)</label>
               <input
                 type="text"
-                className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white uppercase tracking-widest"
-                placeholder="Ej: AB 123 CD"
+                className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text uppercase tracking-widest font-mono text-lg"
+                placeholder="Patente actual..."
                 value={manualForm.plate}
                 onChange={(e) => setManualForm({ ...manualForm, plate: e.target.value.toUpperCase() })}
               />
@@ -474,19 +473,19 @@ export default function QRScanner() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-400 text-xs mb-1">Procedencia</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">Procedencia</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white"
-                  placeholder="Ej: Ruta 7 / Empresa X"
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base"
+                  placeholder="¿De dónde viene?"
                   value={manualForm.origin}
                   onChange={(e) => setManualForm({ ...manualForm, origin: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-slate-400 text-xs mb-1">Sector Destino</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">Destino</label>
                 <select
-                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white"
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base font-medium"
                   value={manualForm.destination}
                   onChange={(e) => setManualForm({ ...manualForm, destination: e.target.value })}
                 >
@@ -500,15 +499,15 @@ export default function QRScanner() {
 
             {/* Selector de Acceso */}
             <div>
-              <label className="block text-slate-400 text-xs mb-1">Tipo de Registro</label>
+              <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-2 px-1">Tipo de Movimiento</label>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setAccessType('ENTRADA')}
-                  className={`flex-1 py-3 font-semibold rounded-xl border transition ${
+                  className={`flex-1 py-4 font-bold rounded-xl border transition text-base ${
                     accessType === 'ENTRADA'
-                      ? 'bg-brand-success border-brand-success text-white'
-                      : 'bg-transparent border-brand-border text-slate-400 hover:text-white'
+                      ? 'bg-brand-success border-brand-success text-white shadow-md'
+                      : 'bg-brand-bg border-brand-border text-brand-muted'
                   }`}
                 >
                   ENTRADA
@@ -516,10 +515,10 @@ export default function QRScanner() {
                 <button
                   type="button"
                   onClick={() => setAccessType('SALIDA')}
-                  className={`flex-1 py-3 font-semibold rounded-xl border transition ${
+                  className={`flex-1 py-4 font-bold rounded-xl border transition text-base ${
                     accessType === 'SALIDA'
-                      ? 'bg-brand-warning border-brand-warning text-white'
-                      : 'bg-transparent border-brand-border text-slate-400 hover:text-white'
+                      ? 'bg-brand-warning border-brand-warning text-white shadow-md'
+                      : 'bg-brand-bg border-brand-border text-brand-muted'
                   }`}
                 >
                   SALIDA

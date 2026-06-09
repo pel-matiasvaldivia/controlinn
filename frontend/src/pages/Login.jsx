@@ -29,31 +29,31 @@ export default function Login() {
         
         {/* Encabezado e Iso-Logotipo */}
         <div className="flex flex-col items-center gap-2.5">
-          <div className="p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl text-brand-primary shadow-inner">
-            <Shield className="w-9 h-9" />
+          <div className="p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl text-brand-primary shadow-sm">
+            <Shield className="w-10 h-10" />
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">ControlInn</h1>
-          <p className="text-slate-400 text-xs text-center font-medium tracking-wide">
+          <h1 className="text-4xl font-extrabold text-brand-text tracking-tight">ControlInn</h1>
+          <p className="text-brand-muted text-sm text-center font-medium tracking-wide">
             PLATAFORMA DE CONTROL DE ACCESO
           </p>
         </div>
 
         {/* Tarjeta de Login */}
-        <div className="bg-brand-card p-6 rounded-3xl border border-brand-border/60 shadow-2xl flex flex-col gap-5">
-          <h2 className="text-lg font-bold text-white text-center">Iniciar Sesión de Guardia</h2>
+        <div className="bg-brand-card p-8 rounded-3xl border border-brand-border shadow-xl flex flex-col gap-6">
+          <h2 className="text-xl font-bold text-brand-text text-center text-pretty">Ingreso al Panel de Control</h2>
           
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             
             {/* Campo Usuario */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-slate-400 text-xs font-semibold">Usuario de Operador</label>
+              <label className="text-brand-muted text-sm font-semibold">Usuario de Operador</label>
               <div className="relative">
-                <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                <User className="absolute left-3.5 top-4 w-5 h-5 text-brand-muted" />
                 <input
                   type="text"
                   required
                   autoFocus
-                  className="w-full pl-10 pr-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white text-sm"
+                  className="w-full pl-11 pr-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base"
                   placeholder="Ej: guardia"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -63,13 +63,13 @@ export default function Login() {
 
             {/* Campo Contraseña */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-slate-400 text-xs font-semibold">Contraseña</label>
+              <label className="text-brand-muted text-sm font-semibold">Contraseña</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                <Lock className="absolute left-3.5 top-4 w-5 h-5 text-brand-muted" />
                 <input
                   type="password"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white text-sm"
+                  className="w-full pl-11 pr-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -101,10 +101,10 @@ export default function Login() {
         </div>
 
         {/* Leyenda Credenciales Mock */}
-        <div className="bg-brand-card/40 border border-brand-border/30 p-4 rounded-2xl text-center text-[10px] text-slate-400">
-          <p className="font-semibold text-slate-300">Credenciales de Desarrollo:</p>
-          <p className="mt-1 font-mono">Usuario: <span className="text-white font-bold">guardia</span> | Clave: <span className="text-white font-bold">control123</span></p>
-          <p className="font-mono mt-0.5">Usuario: <span className="text-white font-bold">admin</span> | Clave: <span className="text-white font-bold">control123</span></p>
+        <div className="bg-brand-card border border-brand-border p-4 rounded-2xl text-center text-xs text-brand-muted">
+          <p className="font-semibold">Credenciales de Desarrollo:</p>
+          <p className="mt-1 font-mono">Usuario: <span className="text-brand-text font-bold">guardia</span> | Clave: <span className="text-brand-text font-bold">control123</span></p>
+          <p className="font-mono mt-0.5">Usuario: <span className="text-brand-text font-bold">admin</span> | Clave: <span className="text-brand-text font-bold">control123</span></p>
         </div>
       </div>
     </div>

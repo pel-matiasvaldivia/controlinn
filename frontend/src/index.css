@@ -3,37 +3,42 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 16px;
+  }
+
   body {
     font-family: 'Outfit', 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
+    background-color: #F0F4FF;
+    color: #1E293B;
   }
 
-  /* Ajustes de scrollbar oscura */
+  /* Scrollbar clara */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0B0F19;
+    background: #F0F4FF;
   }
   ::-webkit-scrollbar-thumb {
-    background: #222F43;
+    background: #CBD5E1;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3B82F6;
+    background: #2563EB;
   }
 }
 
-/* Efecto de foco y active para pantallas táctiles de celulares */
+/* Efecto de foco y active para pantallas táctiles */
 .touch-feedback:active {
   transform: scale(0.97);
   opacity: 0.9;
   transition: transform 0.1s ease-out, opacity 0.1s ease-out;
 }
 
-/* Animación sutil de pulso para la cámara y estados */
 @keyframes pulse-ring {
   0% { transform: scale(0.95); opacity: 0.5; }
   50% { transform: scale(1.05); opacity: 0.8; }

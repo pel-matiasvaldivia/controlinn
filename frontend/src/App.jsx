@@ -5,7 +5,8 @@ import QRScanner from './components/QRScanner';
 import RTSPViewer from './components/RTSPViewer';
 import AccessLog from './components/AccessLog';
 import Settings from './components/Settings';
-import { User, Shield, Wifi, WifiOff, LogOut, ClipboardList, Camera, Car, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import MechanicService from './components/MechanicService';
+import { User, Shield, Wifi, WifiOff, LogOut, ClipboardList, Car, RefreshCw, SlidersHorizontal, Wrench } from 'lucide-react';
 
 export default function App() {
   const { 
@@ -48,11 +49,8 @@ export default function App() {
   return (
     <div className="flex-1 flex flex-col bg-brand-bg text-brand-text h-full relative">
       
-      {/* Círculo decorativo de fondo */}
-      <div className="absolute top-[-5%] right-[-5%] w-60 h-60 rounded-full bg-brand-primary/5 blur-[80px] pointer-events-none"></div>
-
-      {/* HEADER DE OPERACIÓN */}
-      <header className="bg-brand-card px-4 py-3 border-b border-brand-border/60 flex items-center justify-between sticky top-0 z-20 shadow-md">
+      {/* HEADER */}
+      <header className="bg-brand-card px-4 py-3 border-b border-brand-border flex items-center justify-between sticky top-0 z-20 shadow-sm">
         
         {/* Info Operador */}
         <div className="flex items-center gap-2">
@@ -60,9 +58,9 @@ export default function App() {
             <Shield className="w-5 h-5" />
           </div>
           <div className="flex flex-col">
-            <span className="text-white font-bold text-sm tracking-wide">ControlInn</span>
-            <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase flex items-center gap-1">
-              <User className="w-3 h-3 text-slate-500" />
+            <span className="text-brand-text font-bold text-sm tracking-wide">ControlInn</span>
+            <span className="text-xs text-brand-muted font-semibold tracking-wider uppercase flex items-center gap-1">
+              <User className="w-3 h-3 text-brand-muted" />
               {user.username} ({user.role})
             </span>
           </div>
@@ -101,10 +99,10 @@ export default function App() {
           {/* Botón Logout */}
           <button
             onClick={logout}
-            className="p-2 bg-brand-bg hover:bg-brand-border text-slate-400 hover:text-brand-danger border border-brand-border/40 rounded-xl transition touch-feedback"
+            className="p-2 bg-brand-bg hover:bg-brand-border text-brand-muted hover:text-brand-danger border border-brand-border rounded-xl transition touch-feedback"
             title="Cerrar Sesión"
           >
-            <LogOut className="w-4.5 h-4.5" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </header>
@@ -120,46 +118,60 @@ export default function App() {
           {activeTab === 'vehiculos' && <RTSPViewer />}
           {activeTab === 'historial' && <AccessLog />}
           {activeTab === 'configuracion' && <Settings />}
+          {activeTab === 'mecanica' && <MechanicService />}
         </div>
       </main>
 
 
-      {/* BARRA DE NAVEGACIÓN MÓVIL (Optimizada para 5-7 pulgadas) */}
-      <nav className="bg-brand-card/95 backdrop-blur-md border-t border-brand-border/60 py-2 px-6 flex justify-around items-center fixed bottom-0 left-0 right-0 z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.4)]">
+      {/* BARRA DE NAVEGACIÓN MÓVIL */}
+      <nav className="bg-brand-card border-t border-brand-border py-2 px-3 flex justify-around items-center fixed bottom-0 left-0 right-0 z-30 shadow-[0_-2px_12px_rgba(0,0,0,0.08)]">
         
         {/* Tab Personas */}
         <button
           onClick={() => setTab('personas')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition duration-150 touch-feedback ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
             activeTab === 'personas' 
               ? 'text-brand-primary font-bold' 
-              : 'text-slate-500 hover:text-slate-300'
+              : 'text-brand-muted hover:text-brand-text'
           }`}
         >
           <ClipboardList className={`w-6 h-6 transition-transform ${activeTab === 'personas' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Ingreso Personas</span>
+          <span className="text-[10px] tracking-wide font-medium">Personas</span>
         </button>
 
         {/* Tab Vehículos */}
         <button
           onClick={() => setTab('vehiculos')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition duration-150 touch-feedback ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
             activeTab === 'vehiculos' 
               ? 'text-brand-primary font-bold' 
-              : 'text-slate-500 hover:text-slate-300'
+              : 'text-brand-muted hover:text-brand-text'
           }`}
         >
           <Car className={`w-6 h-6 transition-transform ${activeTab === 'vehiculos' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">CCTV / Patente</span>
+          <span className="text-[10px] tracking-wide font-medium">Vehículos</span>
+        </button>
+
+        {/* Tab Mecánica */}
+        <button
+          onClick={() => setTab('mecanica')}
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
+            activeTab === 'mecanica' 
+              ? 'text-brand-primary font-bold' 
+              : 'text-brand-muted hover:text-brand-text'
+          }`}
+        >
+          <Wrench className={`w-6 h-6 transition-transform ${activeTab === 'mecanica' ? 'scale-110' : ''}`} />
+          <span className="text-[10px] tracking-wide font-medium">Mecánica</span>
         </button>
 
         {/* Tab Historial */}
         <button
           onClick={() => setTab('historial')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition duration-150 touch-feedback ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
             activeTab === 'historial' 
               ? 'text-brand-primary font-bold' 
-              : 'text-slate-500 hover:text-slate-300'
+              : 'text-brand-muted hover:text-brand-text'
           }`}
         >
           <ClipboardList className={`w-6 h-6 transition-transform ${activeTab === 'historial' ? 'scale-110' : ''}`} />
@@ -169,14 +181,14 @@ export default function App() {
         {/* Tab Configuración */}
         <button
           onClick={() => setTab('configuracion')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition duration-150 touch-feedback ${
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
             activeTab === 'configuracion' 
               ? 'text-brand-primary font-bold' 
-              : 'text-slate-500 hover:text-slate-300'
+              : 'text-brand-muted hover:text-brand-text'
           }`}
         >
           <SlidersHorizontal className={`w-6 h-6 transition-transform ${activeTab === 'configuracion' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Configuración</span>
+          <span className="text-[10px] tracking-wide font-medium">Config.</span>
         </button>
       </nav>
     </div>
