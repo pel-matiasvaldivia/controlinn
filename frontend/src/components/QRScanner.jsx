@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { Camera, X, Check, ArrowRight, UserPlus, AlertCircle } from 'lucide-react';
 
 export default function QRScanner() {
-  const { registerPersonAccess, error, successMsg, setError, clearMessages } = useStore();
+  const { registerPersonAccess, error, successMsg, setError, clearMessages, sectors } = useStore();
   
   const [scanning, setScanning] = useState(false);
   const [scannedPerson, setScannedPerson] = useState(null);
@@ -14,7 +14,10 @@ export default function QRScanner() {
   const [manualForm, setManualForm] = useState({
     dni: '',
     first_name: '',
-    last_name: ''
+    last_name: '',
+    plate: '',
+    origin: '',
+    destination: ''
   });
 
   const videoRef = useRef(null);
@@ -293,7 +296,7 @@ export default function QRScanner() {
 
     if (success) {
       setManualMode(false);
-      setManualForm({ dni: '', first_name: '', last_name: '' });
+      setManualForm({ dni: '', first_name: '', last_name: '', plate: '', origin: '', destination: '' });
     }
   };
 
@@ -457,6 +460,43 @@ export default function QRScanner() {
               </div>
             </div>
 
+            {/* Patente, Origen, Destino */}
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Patente del Vehículo (opcional)</label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white uppercase tracking-widest"
+                placeholder="Ej: AB 123 CD"
+                value={manualForm.plate}
+                onChange={(e) => setManualForm({ ...manualForm, plate: e.target.value.toUpperCase() })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-slate-400 text-xs mb-1">Procedencia</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white"
+                  placeholder="Ej: Ruta 7 / Empresa X"
+                  value={manualForm.origin}
+                  onChange={(e) => setManualForm({ ...manualForm, origin: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 text-xs mb-1">Sector Destino</label>
+                <select
+                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-white"
+                  value={manualForm.destination}
+                  onChange={(e) => setManualForm({ ...manualForm, destination: e.target.value })}
+                >
+                  <option value="">Seleccionar...</option>
+                  {sectors.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             {/* Selector de Acceso */}
             <div>

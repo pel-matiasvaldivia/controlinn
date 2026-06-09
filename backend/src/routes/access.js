@@ -5,17 +5,16 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 
 // Registrar Entrada
 router.post('/entrada', authenticateToken, async (req, res) => {
-  const { personId, dni, uuid, timestamp } = req.body;
+  const { personId, dni, uuid, timestamp, plate, origin, destination } = req.body;
   const userId = req.user.id;
 
   try {
     let finalPersonId = personId;
 
-    // Si se provee DNI, buscar a la persona
     if (!finalPersonId && dni) {
       const personRes = await query('SELECT id FROM persons WHERE dni = $1', [dni]);
       if (personRes.rows.length === 0) {
-        return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístrela primero.' });
+        return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístre la primero.' });
       }
       finalPersonId = personRes.rows[0].id;
     }
@@ -24,16 +23,14 @@ router.post('/entrada', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Se requiere el ID de la persona o su DNI.' });
     }
 
-    // Insertar log de entrada
-    // Si viene timestamp y uuid del cliente (sincronización offline), los respetamos
     const logTimestamp = timestamp ? new Date(timestamp) : new Date();
     const logUuid = uuid || null;
 
     const insertResult = await query(
-      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced) 
-       VALUES ($1, $2, 'ENTRADA', $3, $4, $5) 
+      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced, plate, origin, destination) 
+       VALUES ($1, $2, 'ENTRADA', $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
-      [logUuid, finalPersonId, logTimestamp, userId, !logUuid]
+      [logUuid, finalPersonId, logTimestamp, userId, !logUuid, plate || null, origin || null, destination || null]
     );
 
     const accessLog = insertResult.rows[0];
@@ -52,17 +49,16 @@ router.post('/entrada', authenticateToken, async (req, res) => {
 
 // Registrar Salida
 router.post('/salida', authenticateToken, async (req, res) => {
-  const { personId, dni, uuid, timestamp } = req.body;
+  const { personId, dni, uuid, timestamp, plate, origin, destination } = req.body;
   const userId = req.user.id;
 
   try {
     let finalPersonId = personId;
 
-    // Si se provee DNI, buscar a la persona
     if (!finalPersonId && dni) {
       const personRes = await query('SELECT id FROM persons WHERE dni = $1', [dni]);
       if (personRes.rows.length === 0) {
-        return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístrela primero.' });
+        return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístre la primero.' });
       }
       finalPersonId = personRes.rows[0].id;
     }
@@ -71,15 +67,14 @@ router.post('/salida', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Se requiere el ID de la persona o su DNI.' });
     }
 
-    // Insertar log de salida
     const logTimestamp = timestamp ? new Date(timestamp) : new Date();
     const logUuid = uuid || null;
 
     const insertResult = await query(
-      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced) 
-       VALUES ($1, $2, 'SALIDA', $3, $4, $5) 
+      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced, plate, origin, destination) 
+       VALUES ($1, $2, 'SALIDA', $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
-      [logUuid, finalPersonId, logTimestamp, userId, !logUuid]
+      [logUuid, finalPersonId, logTimestamp, userId, !logUuid, plate || null, origin || null, destination || null]
     );
 
     const accessLog = insertResult.rows[0];
@@ -107,6 +102,9 @@ router.get('/log', authenticateToken, async (req, res) => {
         al.access_type, 
         al.timestamp, 
         al.synced,
+        al.plate,
+        al.origin,
+        al.destination,
         p.id as person_id,
         p.dni, 
         p.first_name, 

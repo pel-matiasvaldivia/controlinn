@@ -4,7 +4,8 @@ import Login from './pages/Login';
 import QRScanner from './components/QRScanner';
 import RTSPViewer from './components/RTSPViewer';
 import AccessLog from './components/AccessLog';
-import { User, Shield, Wifi, WifiOff, LogOut, ClipboardList, Camera, Car, RefreshCw } from 'lucide-react';
+import Settings from './components/Settings';
+import { User, Shield, Wifi, WifiOff, LogOut, ClipboardList, Camera, Car, RefreshCw, SlidersHorizontal } from 'lucide-react';
 
 export default function App() {
   const { 
@@ -118,6 +119,7 @@ export default function App() {
           )}
           {activeTab === 'vehiculos' && <RTSPViewer />}
           {activeTab === 'historial' && <AccessLog />}
+          {activeTab === 'configuracion' && <Settings />}
         </div>
       </main>
 
@@ -162,6 +164,19 @@ export default function App() {
         >
           <ClipboardList className={`w-6 h-6 transition-transform ${activeTab === 'historial' ? 'scale-110' : ''}`} />
           <span className="text-[10px] tracking-wide font-medium">Historial</span>
+        </button>
+
+        {/* Tab Configuración */}
+        <button
+          onClick={() => setTab('configuracion')}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition duration-150 touch-feedback ${
+            activeTab === 'configuracion' 
+              ? 'text-brand-primary font-bold' 
+              : 'text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          <SlidersHorizontal className={`w-6 h-6 transition-transform ${activeTab === 'configuracion' ? 'scale-110' : ''}`} />
+          <span className="text-[10px] tracking-wide font-medium">Configuración</span>
         </button>
       </nav>
     </div>

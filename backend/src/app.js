@@ -39,6 +39,7 @@ const vehicleAccessRouter = require('./routes/vehicleAccess');
 const syncRouter = require('./routes/sync');
 const ocrRouter = require('./routes/ocr');
 const rtspRouter = require('./routes/rtsp');
+const settingsRouter = require('./routes/settings');
 
 app.use('/api/auth', authRouter);
 app.use('/api/persons', personsRouter);
@@ -48,6 +49,7 @@ app.use('/api/vehicle-access', vehicleAccessRouter);
 app.use('/api/sync', syncRouter);
 app.use('/api/ocr', ocrRouter);
 app.use('/api/rtsp', rtspRouter);
+app.use('/api/settings', settingsRouter);
 
 // Ruta de estado general (Health Check)
 app.get('/api/health', (req, res) => {
