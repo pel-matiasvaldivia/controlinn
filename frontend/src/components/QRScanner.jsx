@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { Camera, X, Check, ArrowRight, UserPlus, AlertCircle } from 'lucide-react';
 
 export default function QRScanner() {
-  const { registerPersonAccess, error, successMsg } = useStore();
+  const { registerPersonAccess, error, successMsg, setError, clearMessages } = useStore();
   
   const [scanning, setScanning] = useState(false);
   const [scannedPerson, setScannedPerson] = useState(null);
@@ -161,18 +161,18 @@ export default function QRScanner() {
         });
       } else {
         console.warn('[SCANNER] Código detectado pero no es un DNI válido:', rawText);
-        useStore.getState().clearMessages();
-        set({ error: 'TOMA FALLIDA: El código escaneado no contiene un formato de DNI válido.' });
+        clearMessages();
+        setError('TOMA FALLIDA: El código escaneado no contiene un formato de DNI válido.');
       }
     } catch (err) {
       console.error('[SCANNER] Error decodificando código:', err);
-      useStore.getState().clearMessages();
-      set({ error: 'TOMA FALLIDA: Error al procesar los datos del documento.' });
+      clearMessages();
+      setError('TOMA FALLIDA: Error al procesar los datos del documento.');
     }
   };
 
   const startCamera = async () => {
-    useStore.getState().clearMessages();
+    clearMessages();
     setScannedPerson(null);
     setManualMode(false);
     setScanning(true);

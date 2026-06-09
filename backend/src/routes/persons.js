@@ -69,13 +69,7 @@ router.post('/scan', authenticateToken, async (req, res) => {
         [dni, firstName, lastName, gender, birthDate, qrData]
       );
       
-      // Si la consulta fue a SQLite, no tiene RETURNING. La volvemos a buscar
-      if (insertResult.lastInsertId) {
-        const findResult = await query('SELECT * FROM persons WHERE id = $1', [insertResult.lastInsertId]);
-        person = findResult.rows[0];
-      } else {
-        person = insertResult.rows[0];
-      }
+      person = insertResult.rows[0];
     }
 
     res.json({
@@ -111,13 +105,7 @@ router.post('/', authenticateToken, async (req, res) => {
       [dni, first_name.trim().toUpperCase(), last_name.trim().toUpperCase(), gender, birth_date, photo]
     );
 
-    let person;
-    if (insertResult.lastInsertId) {
-      const findResult = await query('SELECT * FROM persons WHERE id = $1', [insertResult.lastInsertId]);
-      person = findResult.rows[0];
-    } else {
-      person = insertResult.rows[0];
-    }
+    const person = insertResult.rows[0];
 
     res.status(201).json(person);
   } catch (err) {

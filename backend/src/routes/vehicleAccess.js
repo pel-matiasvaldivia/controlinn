@@ -28,11 +28,7 @@ router.post('/entrada', authenticateToken, async (req, res) => {
           [normalizedPlate, driverName || null, driverDni || null, vehicleType || null]
         );
         
-        if (insertVehRes.lastInsertId) {
-          finalVehicleId = insertVehRes.lastInsertId;
-        } else {
-          finalVehicleId = insertVehRes.rows[0].id;
-        }
+        finalVehicleId = insertVehRes.rows[0].id;
       }
     }
 
@@ -51,13 +47,7 @@ router.post('/entrada', authenticateToken, async (req, res) => {
       [logUuid, finalVehicleId, logTimestamp, userId, !logUuid]
     );
 
-    let accessLog;
-    if (insertResult.lastInsertId) {
-      const findResult = await query('SELECT * FROM vehicle_access_logs WHERE id = $1', [insertResult.lastInsertId]);
-      accessLog = findResult.rows[0];
-    } else {
-      accessLog = insertResult.rows[0];
-    }
+    const accessLog = insertResult.rows[0];
 
     res.status(201).json({
       success: true,
@@ -93,11 +83,7 @@ router.post('/salida', authenticateToken, async (req, res) => {
            RETURNING *`,
           [normalizedPlate, driverName || null, driverDni || null, vehicleType || null]
         );
-        if (insertVehRes.lastInsertId) {
-          finalVehicleId = insertVehRes.lastInsertId;
-        } else {
-          finalVehicleId = insertVehRes.rows[0].id;
-        }
+        finalVehicleId = insertVehRes.rows[0].id;
       }
     }
 
@@ -116,13 +102,7 @@ router.post('/salida', authenticateToken, async (req, res) => {
       [logUuid, finalVehicleId, logTimestamp, userId, !logUuid]
     );
 
-    let accessLog;
-    if (insertResult.lastInsertId) {
-      const findResult = await query('SELECT * FROM vehicle_access_logs WHERE id = $1', [insertResult.lastInsertId]);
-      accessLog = findResult.rows[0];
-    } else {
-      accessLog = insertResult.rows[0];
-    }
+    const accessLog = insertResult.rows[0];
 
     res.status(201).json({
       success: true,

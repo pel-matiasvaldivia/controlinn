@@ -71,46 +71,71 @@ async function query(text, params = []) {
     // 2. Manejar dialectos de fecha (NOW() -> CURRENT_TIMESTAMP)
     cleanedSql = cleanedSql.replace(/NOW\(\)/gi, 'CURRENT_TIMESTAMP');
     
-    // 3. Manejar ON CONFLICT (específicos de PG)
-    if (cleanedSql.toUpperCase().includes('ON CONFLICT') && cleanedSql.toUpperCase().includes('DO NOTHING')) {
-      cleanedSql = cleanedSql.replace(/ON CONFLICT.*DO NOTHING/i, 'OR IGNORE');
-    }
+    // 3. Manejar ON CONFLICT (SQLite 3.24+ soporta ON CONFLICT de forma similar a PG)
+    // No es necesario reemplazar por OR IGNORE ya que better-sqlite3 usa versiones modernas.
     
     // 4. Manejar RETURNING * o RETURNING id
-    // SQLite no soporta RETURNING en versiones antiguas de better-sqlite3 o de forma nativa igual que PG
+    // SQLite soporta RETURNING desde 3.35.0. Si better-sqlite3 falla, emulamos.
     let shouldReturnRows = false;
     if (cleanedSql.toUpperCase().includes('RETURNING')) {
-      cleanedSql = cleanedSql.replace(/RETURNING.*/i, '');
       shouldReturnRows = true;
     }
     
-    const statement = sqliteDb.prepare(cleanedSql);
-    
-    const upperSql = cleanedSql.trim().toUpperCase();
-    if (upperSql.startsWith('SELECT') || upperSql.startsWith('WITH')) {
-      const rows = statement.all(params);
-      return { rows, rowCount: rows.length };
-    } else {
-      const result = statement.run(params);
-      
-      // Si se requería RETURNING, intentamos emularlo buscando la última fila si es posible
-      // Nota: Esto es un fallback limitado. Solo funciona bien para INSERT simples.
-      let rows = [];
-      if (shouldReturnRows && result.lastInsertRowid) {
-        // Intentar adivinar la tabla para el SELECT post-insert
-        const tableMatch = upperSql.match(/INTO\s+([^\s\(]+)/i);
-        if (tableMatch) {
-          const tableName = tableMatch[1];
-          const lastRow = sqliteDb.prepare(`SELECT * FROM ${tableName} WHERE rowid = ?`).get(result.lastInsertRowid);
-          if (lastRow) rows = [lastRow];
-        }
-      }
+    try {
+      const statement = sqliteDb.prepare(cleanedSql);
+      const upperSql = cleanedSql.trim().toUpperCase();
 
-      return {
-        rows,
-        rowCount: result.changes,
-        lastInsertId: result.lastInsertRowid
-      };
+      if (upperSql.startsWith('SELECT') || upperSql.startsWith('WITH')) {
+        const rows = statement.all(params);
+        return { rows, rowCount: rows.length };
+      } else {
+        const result = statement.run(params);
+        let rows = [];
+
+        // Si se usó RETURNING pero el driver no lo devolvió en `result` 
+        // (better-sqlite3 devuelve el primer record si se usa .get() en vez de .run())
+        if (shouldReturnRows) {
+          // Intentar obtener el registro insertado/actualizado si no lo tenemos
+          if (result.lastInsertRowid) {
+            const tableMatch = upperSql.match(/INTO\s+([^\s\(]+)/i);
+            if (tableMatch) {
+              const tableName = tableMatch[1];
+              const lastRow = sqliteDb.prepare(`SELECT * FROM ${tableName} WHERE rowid = ?`).get(result.lastInsertRowid);
+              if (lastRow) rows = [lastRow];
+            }
+          }
+        }
+
+        return {
+          rows,
+          rowCount: result.changes,
+          lastInsertId: result.lastInsertRowid
+        };
+      }
+    } catch (err) {
+      // Si falla por RETURNING (versión antigua de sqlite), intentamos quitarlo y emular
+      if (err.message.includes('RETURNING') || err.message.includes('syntax error')) {
+        let fallbackSql = cleanedSql.replace(/RETURNING.*/i, '').trim();
+        const statement = sqliteDb.prepare(fallbackSql);
+        const result = statement.run(params);
+        let rows = [];
+        
+        if (result.lastInsertRowid) {
+          const tableMatch = fallbackSql.toUpperCase().match(/INTO\s+([^\s\(]+)/i);
+          if (tableMatch) {
+            const tableName = tableMatch[1];
+            const lastRow = sqliteDb.prepare(`SELECT * FROM ${tableName} WHERE rowid = ?`).get(result.lastInsertRowid);
+            if (lastRow) rows = [lastRow];
+          }
+        }
+        
+        return {
+          rows,
+          rowCount: result.changes,
+          lastInsertId: result.lastInsertRowid
+        };
+      }
+      throw err;
     }
   } else {
     return await pgPool.query(text, params);

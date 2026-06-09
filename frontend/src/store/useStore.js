@@ -26,6 +26,8 @@ export const useStore = create((set, get) => ({
   },
 
   clearMessages: () => set({ error: null, successMsg: null }),
+  setError: (msg) => set({ error: msg, successMsg: null }),
+  setSuccess: (msg) => set({ successMsg: msg, error: null }),
   
   setOnlineStatus: (status) => {
     const wasOffline = !get().online;
@@ -181,10 +183,14 @@ export const useStore = create((set, get) => ({
         // Guardar persona en cache local
         await localDb.savePerson(person);
 
-        set(state => ({
-          logs: combineAndSortLogs([log, ...state.logs.filter(l => l.uuid !== uuid)], []),
-          successMsg: `${accessType === 'ENTRADA' ? 'Ingreso' : 'Egreso'} de ${person.first_name} ${person.last_name} registrado satisfactoriamente en la base de datos.`
-        }));
+        set(state => {
+          const others = state.logs.filter(l => l.uuid !== uuid && l.type !== 'person');
+          const currentPeople = state.logs.filter(l => l.uuid !== uuid && l.type === 'person');
+          return {
+            logs: combineAndSortLogs([log, ...currentPeople], others),
+            successMsg: `${accessType === 'ENTRADA' ? 'Ingreso' : 'Egreso'} de ${person.first_name} ${person.last_name} registrado satisfactoriamente en la base de datos.`
+          };
+        });
 
       } else {
         // MODO OFFLINE
@@ -220,10 +226,14 @@ export const useStore = create((set, get) => ({
           synced: false
         });
 
-        set(state => ({
-          logs: combineAndSortLogs([log, ...state.logs.filter(l => l.uuid !== uuid)], []),
-          successMsg: `[OFFLINE] ${accessType === 'ENTRADA' ? 'Ingreso' : 'Egreso'} registrado localmente.`
-        }));
+        set(state => {
+          const others = state.logs.filter(l => l.uuid !== uuid && l.type !== 'person');
+          const currentPeople = state.logs.filter(l => l.uuid !== uuid && l.type === 'person');
+          return {
+            logs: combineAndSortLogs([log, ...currentPeople], others),
+            successMsg: `[OFFLINE] ${accessType === 'ENTRADA' ? 'Ingreso' : 'Egreso'} registrado localmente.`
+          };
+        });
       }
       return true;
     } catch (err) {
@@ -273,10 +283,14 @@ export const useStore = create((set, get) => ({
 
         await localDb.saveVehicle(vehicle);
 
-        set(state => ({
-          logs: combineAndSortLogs([], [log, ...state.logs.filter(l => l.uuid !== uuid)]),
-          successMsg: `Vehículo ${vehicle.plate} registrado satisfactoriamente en la base de datos (${accessType === 'ENTRADA' ? 'Entrada' : 'Salida'}).`
-        }));
+        set(state => {
+          const others = state.logs.filter(l => l.uuid !== uuid && l.type !== 'vehicle');
+          const currentVehicles = state.logs.filter(l => l.uuid !== uuid && l.type === 'vehicle');
+          return {
+            logs: combineAndSortLogs(others, [log, ...currentVehicles]),
+            successMsg: `Vehículo ${vehicle.plate} registrado satisfactoriamente en la base de datos (${accessType === 'ENTRADA' ? 'Entrada' : 'Salida'}).`
+          };
+        });
       } else {
         // MODO OFFLINE
         console.log('[STORE] Modo Offline - Registrando vehículo localmente...');
@@ -287,9 +301,9 @@ export const useStore = create((set, get) => ({
         if (!vehicle) {
           vehicle = await localDb.saveVehicle({
             plate: normalizedPlate,
-            driver_name: manualData?.driver_name || 'DESCONOCIDO',
-            driver_dni: manualData?.driver_dni || '',
-            vehicle_type: manualData?.vehicle_type || '',
+            driver_name: manualData?.driver_name || manualData?.driverName || 'DESCONOCIDO',
+            driver_dni: manualData?.driver_dni || manualData?.driverDni || '',
+            vehicle_type: manualData?.vehicle_type || manualData?.vehicleType || '',
             photo: manualData?.photo || null
           });
         }
@@ -306,10 +320,14 @@ export const useStore = create((set, get) => ({
           synced: false
         });
 
-        set(state => ({
-          logs: combineAndSortLogs([], [log, ...state.logs.filter(l => l.uuid !== uuid)]),
-          successMsg: `[OFFLINE] Vehículo ${vehicle.plate} guardado localmente (${accessType === 'ENTRADA' ? 'Entrada' : 'Salida'}).`
-        }));
+        set(state => {
+          const others = state.logs.filter(l => l.uuid !== uuid && l.type !== 'vehicle');
+          const currentVehicles = state.logs.filter(l => l.uuid !== uuid && l.type === 'vehicle');
+          return {
+            logs: combineAndSortLogs(others, [log, ...currentVehicles]),
+            successMsg: `[OFFLINE] Vehículo ${vehicle.plate} guardado localmente (${accessType === 'ENTRADA' ? 'Entrada' : 'Salida'}).`
+          };
+        });
       }
       return true;
     } catch (err) {

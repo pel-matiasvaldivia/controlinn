@@ -74,12 +74,7 @@ router.post('/', authenticateToken, async (req, res) => {
         [normalizedPlate, driver_name, driver_dni, vehicle_type, photo]
       );
       
-      if (insertResult.lastInsertId) {
-        const findResult = await query('SELECT * FROM vehicles WHERE id = $1', [insertResult.lastInsertId]);
-        vehicle = findResult.rows[0];
-      } else {
-        vehicle = insertResult.rows[0];
-      }
+      vehicle = insertResult.rows[0];
     }
 
     res.status(201).json(vehicle);

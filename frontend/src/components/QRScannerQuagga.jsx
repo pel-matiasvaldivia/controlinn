@@ -22,19 +22,32 @@ const QRScannerQuagga = ({ onSuccess, onError, onClose }) => {
     const codeReader = new BrowserMultiFormatReader(hints);
     codeReaderRef.current = codeReader;
 
-    console.log("[SCANNER] Iniciando lector MultiFormat con ZXing...");
+    const startScanning = async () => {
+      try {
+        const constraints = {
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
 
-    codeReader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
-      if (result) {
-        handleDetected(result.getText());
+        console.log("[SCANNER] Solicitando cámara con restricciones:", constraints);
+        
+        await codeReader.decodeFromConstraints(constraints, videoRef.current, (result, err) => {
+          if (result) {
+            handleDetected(result.getText());
+          }
+        });
+        
+        console.log("[SCANNER] Lector iniciado correctamente.");
+      } catch (err) {
+        console.error("[SCANNER] Error de inicialización catastrófico:", err);
+        if (onError) onError(err);
       }
-      if (err && !(err.name === 'NotFoundException')) {
-        // Ignorar errores normales de "no encontrado" para no saturar consola
-      }
-    }).catch(err => {
-      console.error("[SCANNER] Error de inicialización:", err);
-      if (onError) onError(err);
-    });
+    };
+
+    startScanning();
 
     return () => {
       if (codeReaderRef.current) {

@@ -36,13 +36,7 @@ router.post('/entrada', authenticateToken, async (req, res) => {
       [logUuid, finalPersonId, logTimestamp, userId, !logUuid]
     );
 
-    let accessLog;
-    if (insertResult.lastInsertId) {
-      const findResult = await query('SELECT * FROM access_logs WHERE id = $1', [insertResult.lastInsertId]);
-      accessLog = findResult.rows[0];
-    } else {
-      accessLog = insertResult.rows[0];
-    }
+    const accessLog = insertResult.rows[0];
 
     res.status(201).json({
       success: true,
@@ -88,13 +82,7 @@ router.post('/salida', authenticateToken, async (req, res) => {
       [logUuid, finalPersonId, logTimestamp, userId, !logUuid]
     );
 
-    let accessLog;
-    if (insertResult.lastInsertId) {
-      const findResult = await query('SELECT * FROM access_logs WHERE id = $1', [insertResult.lastInsertId]);
-      accessLog = findResult.rows[0];
-    } else {
-      accessLog = insertResult.rows[0];
-    }
+    const accessLog = insertResult.rows[0];
 
     res.status(201).json({
       success: true,
