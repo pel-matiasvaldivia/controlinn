@@ -34,8 +34,10 @@ CREATE TABLE IF NOT EXISTS access_logs (
   user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   synced BOOLEAN DEFAULT FALSE,
   plate VARCHAR(20),        -- Patente del vehículo (opcional)
-  origin VARCHAR(100),      -- Procedencia
+  origin VARCHAR(100),      -- Procedencia / Empresa
   destination VARCHAR(100), -- Destino (sector)
+  visitor_type VARCHAR(20) DEFAULT 'CLIENTE', -- 'CLIENTE' | 'PROVEEDOR'
+  reason TEXT,              -- Motivo de la visita
   created_at TIMESTAMP DEFAULT NOW()
 );
 

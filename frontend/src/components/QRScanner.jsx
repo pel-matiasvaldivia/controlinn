@@ -17,7 +17,9 @@ export default function QRScanner() {
     last_name: '',
     plate: '',
     origin: '',
-    destination: ''
+    destination: '',
+    visitor_type: 'CLIENTE',
+    reason: ''
   });
 
   const videoRef = useRef(null);
@@ -296,7 +298,16 @@ export default function QRScanner() {
 
     if (success) {
       setManualMode(false);
-      setManualForm({ dni: '', first_name: '', last_name: '', plate: '', origin: '', destination: '' });
+      setManualForm({
+        dni: '',
+        first_name: '',
+        last_name: '',
+        plate: '',
+        origin: '',
+        destination: '',
+        visitor_type: 'CLIENTE',
+        reason: ''
+      });
     }
   };
 
@@ -421,6 +432,32 @@ export default function QRScanner() {
           </div>
 
           <div className="flex flex-col gap-5">
+            {/* Selector de Tipo de Visitante */}
+            <div className="flex bg-brand-border/30 p-1 rounded-xl mb-2">
+              <button
+                type="button"
+                onClick={() => setManualForm({ ...manualForm, visitor_type: 'CLIENTE' })}
+                className={`flex-1 py-2 font-bold rounded-lg text-xs transition ${
+                  manualForm.visitor_type === 'CLIENTE'
+                    ? 'bg-brand-primary text-white shadow-sm'
+                    : 'text-brand-muted hover:text-brand-text'
+                }`}
+              >
+                CLIENTE
+              </button>
+              <button
+                type="button"
+                onClick={() => setManualForm({ ...manualForm, visitor_type: 'PROVEEDOR' })}
+                className={`flex-1 py-2 font-bold rounded-lg text-xs transition ${
+                  manualForm.visitor_type === 'PROVEEDOR'
+                    ? 'bg-brand-warning text-white shadow-sm'
+                    : 'text-brand-muted hover:text-brand-text'
+                }`}
+              >
+                PROVEEDOR
+              </button>
+            </div>
+
             <div>
               <label className="block text-brand-muted text-sm font-bold uppercase tracking-wide mb-1.5 px-1">DNI del Visitante *</label>
               <input
@@ -473,11 +510,13 @@ export default function QRScanner() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">Procedencia</label>
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">
+                  {manualForm.visitor_type === 'PROVEEDOR' ? 'Empresa' : 'Procedencia'}
+                </label>
                 <input
                   type="text"
                   className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base"
-                  placeholder="¿De dónde viene?"
+                  placeholder={manualForm.visitor_type === 'PROVEEDOR' ? 'Nombre de la empresa' : '¿De dónde viene?'}
                   value={manualForm.origin}
                   onChange={(e) => setManualForm({ ...manualForm, origin: e.target.value })}
                 />
@@ -496,6 +535,20 @@ export default function QRScanner() {
                 </select>
               </div>
             </div>
+
+            {manualForm.visitor_type === 'PROVEEDOR' && (
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="block text-brand-muted text-xs font-bold uppercase tracking-wide mb-1 px-1">Motivo / Razón de Visita *</label>
+                <textarea
+                  required
+                  rows="2"
+                  className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text text-base resize-none"
+                  placeholder="Ej: Entrega de mercadería, Mantenimiento, etc..."
+                  value={manualForm.reason}
+                  onChange={(e) => setManualForm({ ...manualForm, reason: e.target.value })}
+                />
+              </div>
+            )}
 
             {/* Selector de Acceso */}
             <div>

@@ -198,7 +198,9 @@ export const useStore = create((set, get) => ({
           personId: person.id,
           plate: manualData?.plate || null,
           origin: manualData?.origin || null,
-          destination: manualData?.destination || null
+          destination: manualData?.destination || null,
+          visitor_type: manualData?.visitor_type || 'CLIENTE',
+          reason: manualData?.reason || null
         });
 
         // Guardar log sincronizado en IndexedDB y memoria
@@ -212,6 +214,8 @@ export const useStore = create((set, get) => ({
           plate: manualData?.plate || null,
           origin: manualData?.origin || null,
           destination: manualData?.destination || null,
+          visitor_type: manualData?.visitor_type || 'CLIENTE',
+          reason: manualData?.reason || null,
           timestamp,
           synced: true
         });
@@ -261,6 +265,8 @@ export const useStore = create((set, get) => ({
           plate: manualData?.plate || null,
           origin: manualData?.origin || null,
           destination: manualData?.destination || null,
+          visitor_type: manualData?.visitor_type || 'CLIENTE',
+          reason: manualData?.reason || null,
           timestamp,
           synced: false
         });

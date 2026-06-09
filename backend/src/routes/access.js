@@ -5,7 +5,7 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 
 // Registrar Entrada
 router.post('/entrada', authenticateToken, async (req, res) => {
-  const { personId, dni, uuid, timestamp, plate, origin, destination } = req.body;
+  const { personId, dni, uuid, timestamp, plate, origin, destination, visitor_type, reason } = req.body;
   const userId = req.user.id;
 
   try {
@@ -27,10 +27,10 @@ router.post('/entrada', authenticateToken, async (req, res) => {
     const logUuid = uuid || null;
 
     const insertResult = await query(
-      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced, plate, origin, destination) 
-       VALUES ($1, $2, 'ENTRADA', $3, $4, $5, $6, $7, $8) 
+      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced, plate, origin, destination, visitor_type, reason) 
+       VALUES ($1, $2, 'ENTRADA', $3, $4, $5, $6, $7, $8, $9, $10) 
        RETURNING *`,
-      [logUuid, finalPersonId, logTimestamp, userId, !logUuid, plate || null, origin || null, destination || null]
+      [logUuid, finalPersonId, logTimestamp, userId, !logUuid, plate || null, origin || null, destination || null, visitor_type || 'CLIENTE', reason || null]
     );
 
     const accessLog = insertResult.rows[0];
@@ -49,7 +49,7 @@ router.post('/entrada', authenticateToken, async (req, res) => {
 
 // Registrar Salida
 router.post('/salida', authenticateToken, async (req, res) => {
-  const { personId, dni, uuid, timestamp, plate, origin, destination } = req.body;
+  const { personId, dni, uuid, timestamp, plate, origin, destination, visitor_type, reason } = req.body;
   const userId = req.user.id;
 
   try {
@@ -71,10 +71,10 @@ router.post('/salida', authenticateToken, async (req, res) => {
     const logUuid = uuid || null;
 
     const insertResult = await query(
-      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced, plate, origin, destination) 
-       VALUES ($1, $2, 'SALIDA', $3, $4, $5, $6, $7, $8) 
+      `INSERT INTO access_logs (uuid, person_id, access_type, timestamp, user_id, synced, plate, origin, destination, visitor_type, reason) 
+       VALUES ($1, $2, 'SALIDA', $3, $4, $5, $6, $7, $8, $9, $10) 
        RETURNING *`,
-      [logUuid, finalPersonId, logTimestamp, userId, !logUuid, plate || null, origin || null, destination || null]
+      [logUuid, finalPersonId, logTimestamp, userId, !logUuid, plate || null, origin || null, destination || null, visitor_type || 'CLIENTE', reason || null]
     );
 
     const accessLog = insertResult.rows[0];
@@ -105,6 +105,8 @@ router.get('/log', authenticateToken, async (req, res) => {
         al.plate,
         al.origin,
         al.destination,
+        al.visitor_type,
+        al.reason,
         p.id as person_id,
         p.dni, 
         p.first_name, 

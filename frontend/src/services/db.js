@@ -132,6 +132,11 @@ export const localDb = {
       first_name: log.first_name || log.firstName || '',
       last_name: log.last_name || log.lastName || '',
       access_type: log.access_type || log.accessType, // 'ENTRADA' | 'SALIDA'
+      plate: log.plate || null,
+      origin: log.origin || null,
+      destination: log.destination || null,
+      visitor_type: log.visitor_type || 'CLIENTE',
+      reason: log.reason || null,
       timestamp: log.timestamp || new Date().toISOString(),
       synced: log.synced !== undefined ? log.synced : false
     };
