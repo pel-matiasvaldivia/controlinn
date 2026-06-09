@@ -30,9 +30,9 @@ router.post('/entrada', authenticateToken, async (req, res) => {
   }
 });
 
-// POST /mechanic/salida — Registrar egreso de moto por patente
+// POST /mechanic/salida — Registrar egreso de moto por nombre de cliente
 router.post('/salida', authenticateToken, async (req, res) => {
-  const { plate, uuid, timestamp } = req.body;
+  const { client_name, uuid, timestamp } = req.body;
   const userId = req.user.id;
 
   if (!plate) {
@@ -40,25 +40,29 @@ router.post('/salida', authenticateToken, async (req, res) => {
   }
 
   try {
-    const normalizedPlate = plate.trim().toUpperCase();
+    const searchName = client_name.trim();
     const logTimestamp = timestamp ? new Date(timestamp) : new Date();
     const logUuid = uuid || `m-${Date.now()}-${Math.random().toString(36).substr(2,9)}`;
 
-    // Buscar el último registro de entrada para obtener datos de la moto
+    // Buscar el último registro de entrada para ese cliente que esté "En taller"
     const prevRes = await query(
-      `SELECT brand, model, client_name FROM mechanic_services 
-       WHERE plate = $1 AND access_type = 'ENTRADA' 
+      `SELECT plate, brand, model, client_name FROM mechanic_services 
+       WHERE client_name ILIKE $1 AND access_type = 'ENTRADA' 
        ORDER BY timestamp DESC LIMIT 1`,
-      [normalizedPlate]
+      [`%${searchName}%`]
     );
 
-    const prev = prevRes.rows[0] || {};
+    if (prevRes.rows.length === 0) {
+      return res.status(404).json({ error: `No se encontró un ingreso reciente para el cliente "${searchName}".` });
+    }
+
+    const prev = prevRes.rows[0];
 
     const result = await query(
       `INSERT INTO mechanic_services (uuid, plate, brand, model, client_name, access_type, timestamp, user_id, synced)
        VALUES ($1, $2, $3, $4, $5, 'SALIDA', $6, $7, $8)
        RETURNING *`,
-      [logUuid, normalizedPlate, prev.brand || null, prev.model || null, prev.client_name || null, logTimestamp, userId, !uuid]
+      [logUuid, prev.plate, prev.brand || null, prev.model || null, prev.client_name || null, logTimestamp, userId, !uuid]
     );
 
     res.status(201).json({ success: true, log: result.rows[0], message: 'Egreso de moto registrado.' });

@@ -17,7 +17,7 @@ export default function MechanicService() {
     client_name: ''
   });
 
-  const [salidaPlate, setSalidaPlate] = useState('');
+  const [salidaClient, setSalidaClient] = useState('');
 
   // Cargar logs del día
   const loadLogs = async () => {
@@ -58,13 +58,13 @@ export default function MechanicService() {
   const handleSalida = async (e) => {
     e.preventDefault();
     clearMessages();
-    if (!salidaPlate) return;
+    if (!salidaClient) return;
 
     setLoading(true);
     try {
-      await apiClient.post('/mechanic/salida', { plate: salidaPlate.toUpperCase() });
-      setSuccess(`Egreso registrado para patente ${salidaPlate.toUpperCase()}`);
-      setSalidaPlate('');
+      await apiClient.post('/mechanic/salida', { client_name: salidaClient });
+      setSuccess(`Egreso registrado para cliente ${salidaClient}`);
+      setSalidaClient('');
       await loadLogs();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al registrar el egreso.');
@@ -176,17 +176,17 @@ export default function MechanicService() {
       {mode === 'salida' && (
         <form onSubmit={handleSalida} className="bg-brand-card rounded-2xl border border-brand-border shadow-sm p-5 flex flex-col gap-4">
           <h3 className="text-brand-text font-bold text-base">Registrar Egreso de Moto</h3>
-          <p className="text-brand-muted text-sm">Ingresá la patente de la moto que retira el servicio.</p>
+          <p className="text-brand-muted text-sm">Ingresá el nombre o apellido del cliente que retira el servicio.</p>
 
           <div>
-            <label className="block text-brand-muted text-xs font-semibold mb-1.5 uppercase tracking-wide">Patente *</label>
+            <label className="block text-brand-muted text-xs font-semibold mb-1.5 uppercase tracking-wide">Cliente *</label>
             <input
               type="text"
               required
-              placeholder="Ej: AB 123 CD"
-              value={salidaPlate}
-              onChange={(e) => setSalidaPlate(e.target.value.toUpperCase())}
-              className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-mono text-lg tracking-widest uppercase"
+              placeholder="Nombre del cliente..."
+              value={salidaClient}
+              onChange={(e) => setSalidaClient(e.target.value)}
+              className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-semibold text-lg"
             />
           </div>
 
