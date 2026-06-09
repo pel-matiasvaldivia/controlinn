@@ -2,6 +2,30 @@ import { create } from 'zustand';
 import apiClient from '../services/apiClient';
 import { localDb } from '../services/db';
 
+export function pairMechanicLogs(logs = []) {
+  // Ordenar de más viejo a más nuevo para emparejar
+  const sorted = [...logs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const sessions = [];
+  const pending = {};
+
+  sorted.forEach(log => {
+    const key = log.plate;
+    if (log.access_type === 'ENTRADA') {
+      pending[key] = sessions.length;
+      sessions.push({ ...log, exit_timestamp: null });
+    } else {
+      if (pending[key] !== undefined) {
+        sessions[pending[key]].exit_timestamp = log.timestamp;
+        delete pending[key];
+      } else {
+        sessions.push({ ...log, exit_timestamp: log.timestamp });
+      }
+    }
+  });
+
+  return sessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+}
+
 export const useStore = create((set, get) => ({
   // --- ESTADO ---
   user: JSON.parse(localStorage.getItem('user')) || null,

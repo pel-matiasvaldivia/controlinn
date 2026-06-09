@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useStore } from '../store/useStore';
-import { Wrench, ArrowRight, CheckCircle, AlertCircle, Clock, LogOut } from 'lucide-react';
+import { useStore, pairMechanicLogs } from '../store/useStore';
+import { Wrench, ArrowRight, CheckCircle, AlertCircle, Clock, LogOut, Calendar, User } from 'lucide-react';
 import apiClient from '../services/apiClient';
 
 export default function MechanicService() {
@@ -23,8 +23,9 @@ export default function MechanicService() {
   const loadLogs = async () => {
     try {
       const res = await apiClient.get('/mechanic/log');
+      const paired = pairMechanicLogs(res.data || []);
       const today = new Date().toDateString();
-      setTodayLogs(res.data.filter(l => new Date(l.timestamp).toDateString() === today));
+      setTodayLogs(paired.filter(l => new Date(l.timestamp).toDateString() === today));
     } catch (e) {
       console.warn('[MECHANIC] No se pudo cargar el historial.');
     }
@@ -41,7 +42,7 @@ export default function MechanicService() {
 
     setLoading(true);
     try {
-      const res = await apiClient.post('/mechanic/entrada', {
+      await apiClient.post('/mechanic/entrada', {
         ...entradaForm,
         plate: entradaForm.plate.toUpperCase()
       });
@@ -110,11 +111,10 @@ export default function MechanicService() {
         </button>
       </div>
 
-      {/* Formulario Entrada */}
-      {mode === 'entrada' && (
+      {/* Formularios */}
+      {mode === 'entrada' ? (
         <form onSubmit={handleEntrada} className="bg-brand-card rounded-2xl border border-brand-border shadow-sm p-5 flex flex-col gap-4">
           <h3 className="text-brand-text font-bold text-base">Registrar Ingreso de Moto</h3>
-
           <div>
             <label className="block text-brand-muted text-xs font-semibold mb-1.5 uppercase tracking-wide">Patente *</label>
             <input
@@ -126,7 +126,6 @@ export default function MechanicService() {
               className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-mono text-lg tracking-widest uppercase"
             />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-brand-muted text-xs font-semibold mb-1.5 uppercase tracking-wide">Marca</label>
@@ -149,7 +148,6 @@ export default function MechanicService() {
               />
             </div>
           </div>
-
           <div>
             <label className="block text-brand-muted text-xs font-semibold mb-1.5 uppercase tracking-wide">Cliente</label>
             <input
@@ -160,7 +158,6 @@ export default function MechanicService() {
               className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text"
             />
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -170,14 +167,10 @@ export default function MechanicService() {
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
-      )}
-
-      {/* Formulario Salida */}
-      {mode === 'salida' && (
+      ) : (
         <form onSubmit={handleSalida} className="bg-brand-card rounded-2xl border border-brand-border shadow-sm p-5 flex flex-col gap-4">
           <h3 className="text-brand-text font-bold text-base">Registrar Egreso de Moto</h3>
           <p className="text-brand-muted text-sm">Ingresá el nombre o apellido del cliente que retira el servicio.</p>
-
           <div>
             <label className="block text-brand-muted text-xs font-semibold mb-1.5 uppercase tracking-wide">Cliente *</label>
             <input
@@ -189,7 +182,6 @@ export default function MechanicService() {
               className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-semibold text-lg"
             />
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -217,26 +209,68 @@ export default function MechanicService() {
 
       {/* Historial del día */}
       {todayLogs.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <h3 className="text-brand-text font-bold text-sm uppercase tracking-wide flex items-center gap-2">
-            <Clock className="w-4 h-4 text-brand-muted" />
+        <div className="flex flex-col gap-3">
+          <h3 className="text-brand-text font-black text-xs uppercase tracking-widest flex items-center gap-2 px-1">
+            <Clock className="w-4 h-4 text-brand-primary" />
             Movimientos de hoy
           </h3>
-          {todayLogs.map((log) => (
-            <div key={log.id} className="flex items-center justify-between px-4 py-3 bg-brand-card border border-brand-border rounded-xl">
-              <div>
-                <p className="font-mono font-bold text-brand-text tracking-wider">{log.plate}</p>
-                <p className="text-brand-muted text-xs">{log.brand} {log.model} · {log.client_name || 'Sin cliente'}</p>
+          {todayLogs.map((log) => {
+            const entryDate = new Date(log.timestamp);
+            const exitDate = log.exit_timestamp ? new Date(log.exit_timestamp) : null;
+            
+            return (
+              <div key={log.id || log.timestamp} className="bg-brand-card p-4 rounded-2xl border border-brand-border shadow-sm flex flex-col gap-3 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-brand-primary/10 text-brand-primary rounded-lg">
+                      <Wrench className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-mono font-bold text-brand-text text-lg tracking-widest uppercase leading-none">{log.plate}</p>
+                      <p className="text-brand-muted text-[10px] font-bold uppercase opacity-80 mt-1">{log.brand} {log.model}</p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-black shadow-sm ${
+                    exitDate ? 'bg-slate-100 text-slate-500 border border-slate-200' : 'bg-brand-primary text-white'
+                  }`}>
+                    {exitDate ? 'COMPLETO' : 'EN TALLER'}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2.5 bg-brand-bg/50 p-2.5 rounded-xl border border-brand-border/30">
+                  <div className="flex items-start gap-2">
+                    <div className="p-1.5 bg-brand-bg rounded-lg">
+                      <User className="w-3 h-3 text-brand-muted" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-brand-muted font-black uppercase block leading-none mb-1">Cliente</span>
+                      <span className="text-sm font-bold text-brand-text leading-none">{log.client_name || 'N/C'}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-1 border-t border-brand-border/20">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] text-brand-primary font-black uppercase tracking-tighter">Ingreso</span>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-brand-text">
+                        <Clock className="w-3 h-3 opacity-40" />
+                        {entryDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    
+                    {exitDate && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] text-brand-warning font-black uppercase tracking-tighter">Egreso</span>
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-brand-warning">
+                          <Clock className="w-3 h-3 opacity-40" />
+                          {exitDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                log.access_type === 'ENTRADA'
-                  ? 'bg-brand-primary/10 text-brand-primary'
-                  : 'bg-brand-warning/10 text-brand-warning'
-              }`}>
-                {log.access_type}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
