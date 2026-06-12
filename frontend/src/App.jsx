@@ -111,7 +111,7 @@ export default function App() {
 
       {/* CONTENIDO PRINCIPAL */}
       <main className="flex-1 overflow-y-auto px-4 py-4 pb-24">
-        <div className="max-w-md mx-auto h-full">
+        <div className="max-w-7xl mx-auto h-full">
           {activeTab === 'personas' && (
             <div className="flex flex-col gap-4">
               <QRScanner />

@@ -109,7 +109,7 @@ export default function Reports() {
           <h2 className="text-sm font-bold text-brand-text">Filtros de Reporte</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <InputGroup label="DNI" name="dni" value={filters.dni} onChange={v => setFilters({...filters, dni: v})} icon={<Search className="w-4 h-4" />} placeholder="Buscar por DNI..." />
           <InputGroup label="Nombre/Apellido" name="name" value={filters.name} onChange={v => setFilters({...filters, name: v})} icon={<User className="w-4 h-4" />} placeholder="Buscar por nombre..." />
           <InputGroup label="Patente" name="plate" value={filters.plate} onChange={v => setFilters({...filters, plate: v})} icon={<Tag className="w-4 h-4" />} placeholder="Ej: ABC 123" />
