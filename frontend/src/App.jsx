@@ -128,11 +128,11 @@ export default function App() {
 
 
       {/* BARRA DE NAVEGACIÓN (Auto-ocultable) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 group h-20 flex flex-col justify-end">
-        {/* Trigger Area (Invisible pero captura el hover) */}
-        <div className="absolute inset-0 pointer-events-auto" />
+      <div className="fixed bottom-0 left-0 right-0 z-40 group flex flex-col justify-end">
+        {/* Trigger Area (Zona sensible muy pequeña al borde inferior para no tapar botones) */}
+        <div className="h-4 absolute bottom-0 left-0 right-0 z-10" />
         
-        <nav className="bg-white/95 backdrop-blur-md border-t border-brand-border py-3 px-4 flex justify-around items-center translate-y-[80%] group-hover:translate-y-0 transition-transform duration-300 ease-out shadow-[0_-4px_20px_rgba(0,0,0,0.1)] relative z-50">
+        <nav className="bg-white/95 backdrop-blur-md border-t border-brand-border py-4 px-4 flex justify-around items-center translate-y-[90%] group-hover:translate-y-0 transition-all duration-300 ease-in-out shadow-[0_-8px_30px_rgba(0,0,0,0.12)] relative z-50">
           
           {/* Tab Personas */}
           <button
