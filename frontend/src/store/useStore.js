@@ -40,7 +40,8 @@ export const useStore = create((set, get) => ({
   persons: [],
   vehicles: [],
   logs: [], // Logs combinados de personas y vehículos
-  sectors: [], // Sectores de destino configurables
+  sectors: [], // Sectores de destino para Clientes
+  providerSectors: [], // Sectores de destino para Proveedores
   mechanicDestinations: [], // Destinos exclusivos para mecánicos
   knownMechanics: [], // Personal de mecánica (nombre, apellido, código)
   
@@ -60,25 +61,36 @@ export const useStore = create((set, get) => ({
   // Cargar sectores configurables desde la API
   loadSectors: async () => {
     try {
-      const res = await apiClient.get('/settings/sectors');
-      set({ sectors: res.data.sectors || [] });
+      const [clientRes, providerRes] = await Promise.all([
+        apiClient.get('/settings/sectors'),
+        apiClient.get('/settings/sectors_providers')
+      ]);
+      set({ 
+        sectors: clientRes.data.sectors || [],
+        providerSectors: providerRes.data.sectors_providers || []
+      });
     } catch (err) {
       // En modo offline cargar desde localStorage
-      const cached = localStorage.getItem('sectors');
-      if (cached) set({ sectors: JSON.parse(cached) });
+      const cachedClients = localStorage.getItem('sectors');
+      const cachedProviders = localStorage.getItem('sectors_providers');
+      if (cachedClients) set({ sectors: JSON.parse(cachedClients) });
+      if (cachedProviders) set({ providerSectors: JSON.parse(cachedProviders) });
       console.warn('[STORE] No se pudieron cargar los sectores del servidor.');
     }
   },
 
-  // Guardar sectores configurables
-  saveSectors: async (sectors) => {
+  // Guardar sectores configurables por tipo
+  saveSectors: async (type, sectors) => {
     try {
-      await apiClient.put('/settings/sectors', { sectors });
-      localStorage.setItem('sectors', JSON.stringify(sectors));
-      set({ sectors });
+      const key = type === 'clients' ? 'sectors' : 'sectors_providers';
+      const stateKey = type === 'clients' ? 'sectors' : 'providerSectors';
+      
+      await apiClient.put(`/settings/${key}`, { [key]: sectors });
+      localStorage.setItem(key, JSON.stringify(sectors));
+      set({ [stateKey]: sectors });
       return true;
     } catch (err) {
-      console.error('[STORE] Error guardando sectores:', err);
+      console.error(`[STORE] Error guardando sectores ${type}:`, err);
       return false;
     }
   },

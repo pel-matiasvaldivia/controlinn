@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { Camera, X, Check, ArrowRight, UserPlus, AlertCircle } from 'lucide-react';
 
 export default function QRScanner() {
-  const { registerPersonAccess, error, successMsg, setError, clearMessages, sectors } = useStore();
+  const { registerPersonAccess, error, successMsg, setError, clearMessages, sectors, providerSectors, mechanicDestinations, loadSectors, loadMechanicSettings } = useStore();
   
   const [scanning, setScanning] = useState(false);
   const [scannedPerson, setScannedPerson] = useState(null);
@@ -264,6 +264,10 @@ export default function QRScanner() {
   };
 
   useEffect(() => {
+    // Cargar listas de destinos al montar el componente para evitar dropdowns vacíos
+    loadSectors();
+    loadMechanicSettings();
+
     return () => {
       stopCamera();
     };
@@ -617,7 +621,12 @@ export default function QRScanner() {
                   onChange={(e) => setManualForm({ ...manualForm, destination: e.target.value })}
                 >
                   <option value="">Seleccionar...</option>
-                  {(manualForm.visitor_type === 'MECANICO' ? useStore.getState().mechanicDestinations : sectors).map((s) => (
+                  {(manualForm.visitor_type === 'MECANICO' 
+                    ? mechanicDestinations 
+                    : manualForm.visitor_type === 'PROVEEDOR' 
+                      ? providerSectors 
+                      : sectors
+                  ).map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

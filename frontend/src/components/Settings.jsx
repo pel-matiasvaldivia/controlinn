@@ -3,15 +3,17 @@ import { useStore } from '../store/useStore';
 import { Settings as SettingsIcon, Plus, X, Save, Check, Wrench, Users, MapPin } from 'lucide-react';
 
 export default function Settings() {
-  const { sectors, saveSectors, mechanicDestinations, knownMechanics, saveMechanicSettings, user } = useStore();
+  const { sectors, saveSectors, providerSectors, mechanicDestinations, knownMechanics, saveMechanicSettings, user } = useStore();
 
-  const [activeSubTab, setActiveSubTab] = useState('general'); // 'general' | 'mechanic_dest' | 'mechanic_staff'
+  const [activeSubTab, setActiveSubTab] = useState('general'); // 'general' | 'providers' | 'mechanic_dest' | 'mechanic_staff'
   
   const [localSectors, setLocalSectors] = useState([...sectors]);
+  const [localProvSectors, setLocalProvSectors] = useState([...providerSectors]);
   const [localMechDest, setLocalMechDest] = useState([...mechanicDestinations]);
   const [localMechStaff, setLocalMechStaff] = useState([...knownMechanics]);
 
   const [newGeneral, setNewGeneral] = useState('');
+  const [newProv, setNewProv] = useState('');
   const [newMechDest, setNewMechDest] = useState('');
   const [newStaff, setNewStaff] = useState({ name: '', surname: '', code: '', sector: '' });
 
@@ -24,7 +26,8 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     let ok = false;
-    if (activeSubTab === 'general') ok = await saveSectors(localSectors);
+    if (activeSubTab === 'general') ok = await saveSectors('clients', localSectors);
+    else if (activeSubTab === 'providers') ok = await saveSectors('providers', localProvSectors);
     else if (activeSubTab === 'mechanic_dest') ok = await saveMechanicSettings('mechanic_destinations', localMechDest);
     else if (activeSubTab === 'mechanic_staff') ok = await saveMechanicSettings('known_mechanics', localMechStaff);
     
@@ -49,23 +52,24 @@ export default function Settings() {
       </div>
 
       {/* Tabs de Configuración */}
-      <div className="flex gap-2 p-1.5 bg-brand-border/30 rounded-2xl">
+      <div className="flex gap-1.5 p-1.5 bg-brand-border/30 rounded-2xl overflow-x-auto no-scrollbar">
         {[
-          { id: 'general', label: 'General', icon: <SettingsIcon className="w-4 h-4" /> },
-          { id: 'mechanic_dest', label: 'Destinos Personal', icon: <MapPin className="w-4 h-4" /> },
-          { id: 'mechanic_staff', label: 'Personal Interno', icon: <Users className="w-4 h-4" /> }
+          { id: 'general', label: 'Clientes', icon: <Users className="w-4 h-4" /> },
+          { id: 'providers', label: 'Proveedores', icon: <MapPin className="w-4 h-4" /> },
+          { id: 'mechanic_dest', label: 'Personal (Dest)', icon: <MapPin className="w-4 h-4" /> },
+          { id: 'mechanic_staff', label: 'Personal (Staff)', icon: <Check className="w-4 h-4" /> }
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveSubTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-bold rounded-xl text-xs transition ${
+            className={`min-w-max flex-1 flex items-center justify-center gap-2 px-3 py-2.5 font-bold rounded-xl text-[10px] sm:text-xs transition ${
               activeSubTab === tab.id
                 ? 'bg-brand-primary text-white shadow-sm'
                 : 'text-brand-muted hover:text-brand-text'
             }`}
           >
             {tab.icon}
-            <span className="hidden sm:inline">{tab.label}</span>
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
@@ -73,16 +77,16 @@ export default function Settings() {
       {/* Contenido de la Tab */}
       <div className="bg-brand-card rounded-2xl border border-brand-border p-6 flex flex-col gap-5 shadow-sm mb-4">
         
-        {/* SECTORES GENERALES */}
+        {/* SECTORES CLIENTES */}
         {activeSubTab === 'general' && (
           <>
             <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
-              <SettingsIcon className="w-4 h-4" /> Sectores de Destino (Clientes/Proveedores)
+              <Users className="w-4 h-4" /> Sectores de Destino (Clientes)
             </h3>
             
             {isAdmin && (
               <div className="flex gap-3 mb-2 p-1">
-                <input type="text" className="flex-1 px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text font-medium focus:outline-none focus:border-brand-primary" placeholder="Nuevo sector..." value={newGeneral} onChange={e => setNewGeneral(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setLocalSectors([...localSectors, newGeneral.trim()]), setNewGeneral(''))} />
+                <input type="text" className="flex-1 px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text font-medium focus:outline-none focus:border-brand-primary" placeholder="Nuevo sector clientes..." value={newGeneral} onChange={e => setNewGeneral(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setLocalSectors([...localSectors, newGeneral.trim()]), setNewGeneral(''))} />
                 <button onClick={() => { if(newGeneral) { setLocalSectors([...localSectors, newGeneral.trim()]); setNewGeneral(''); } }} className="p-3 bg-brand-primary text-white rounded-xl transition shadow-md"><Plus className="w-6 h-6" /></button>
               </div>
             )}
@@ -93,6 +97,35 @@ export default function Settings() {
                   <span className="text-brand-text font-bold">{s}</span>
                   {isAdmin && (
                     <button onClick={() => setLocalSectors(localSectors.filter(x => x !== s))} className="p-1.5 text-brand-muted hover:text-brand-danger rounded-lg transition">
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* SECTORES PROVEEDORES */}
+        {activeSubTab === 'providers' && (
+          <>
+            <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
+              <MapPin className="w-4 h-4" /> Sectores de Destino (Proveedores)
+            </h3>
+            
+            {isAdmin && (
+              <div className="flex gap-3 mb-2 p-1">
+                <input type="text" className="flex-1 px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text font-medium focus:outline-none focus:border-brand-primary" placeholder="Nuevo sector proveedores..." value={newProv} onChange={e => setNewProv(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setLocalProvSectors([...localProvSectors, newProv.trim()]), setNewProv(''))} />
+                <button onClick={() => { if(newProv) { setLocalProvSectors([...localProvSectors, newProv.trim()]); setNewProv(''); } }} className="p-3 bg-brand-primary text-white rounded-xl transition shadow-md"><Plus className="w-6 h-6" /></button>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2.5">
+              {localProvSectors.map((s, i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-3 bg-brand-bg border border-brand-border rounded-xl">
+                  <span className="text-brand-text font-bold">{s}</span>
+                  {isAdmin && (
+                    <button onClick={() => setLocalProvSectors(localProvSectors.filter(x => x !== s))} className="p-1.5 text-brand-muted hover:text-brand-danger rounded-lg transition">
                       <X className="w-5 h-5" />
                     </button>
                   )}
@@ -135,7 +168,7 @@ export default function Settings() {
         {activeSubTab === 'mechanic_staff' && (
           <>
             <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
-              <Users className="w-4 h-4" /> Gestión de Personal Interno
+              <Check className="w-4 h-4" /> Gestión de Personal Interno
             </h3>
 
             {isAdmin && (
@@ -193,7 +226,7 @@ export default function Settings() {
             ) : (
               <>
                 <Save className="w-6 h-6" />
-                <span>{saving ? 'GUARDANDO...' : `GUARDAR ${activeSubTab === 'general' ? 'DESTINOS' : activeSubTab === 'mechanic_dest' ? 'DESTINOS PERS.' : 'PERSONAL'}`}</span>
+                <span>{saving ? 'GUARDANDO...' : `GUARDAR ${activeSubTab === 'general' ? 'DEST. CLIE.' : activeSubTab === 'providers' ? 'DEST. PROV.' : activeSubTab === 'mechanic_dest' ? 'DEST. PERS.' : 'PERSONAL'}`}</span>
               </>
             )}
           </button>

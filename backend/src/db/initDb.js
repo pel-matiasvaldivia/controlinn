@@ -89,7 +89,8 @@ async function initializeDatabase() {
     `ALTER TABLE mechanic_services ADD COLUMN IF NOT EXISTS document_nro VARCHAR(100)`,
     
     // Configuración inicial de sectores
-    `INSERT INTO settings (key, value) VALUES ('sectors', '["Administración", "Producción", "Ventas", "Carga/Descarga", "Taller"]') ON CONFLICT (key) DO NOTHING`
+    `INSERT INTO settings (key, value) VALUES ('sectors', '["Administración", "Producción", "Ventas", "Carga/Descarga", "Taller"]') ON CONFLICT (key) DO NOTHING`,
+    `INSERT INTO settings (key, value) VALUES ('sectors_providers', '["Recepción", "Depósito", "Mantenimiento", "Expedición"]') ON CONFLICT (key) DO NOTHING`
   ];
 
   const sqliteTables = [
