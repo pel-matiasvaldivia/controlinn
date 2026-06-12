@@ -9,6 +9,7 @@ export default function QRScanner() {
   const [scannedPerson, setScannedPerson] = useState(null);
   const [accessType, setAccessType] = useState('ENTRADA'); // 'ENTRADA' | 'SALIDA'
   const [manualMode, setManualMode] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   
   // Formulario manual
   const [manualForm, setManualForm] = useState({
@@ -270,7 +271,8 @@ export default function QRScanner() {
 
   // Confirmar y registrar el acceso escaneado
   const handleConfirmAccess = async () => {
-    if (!scannedPerson) return;
+    if (!scannedPerson || submitting) return;
+    setSubmitting(true);
     
     const success = await registerPersonAccess(
       scannedPerson.dni,
@@ -278,6 +280,7 @@ export default function QRScanner() {
       scannedPerson
     );
     
+    setSubmitting(false);
     if (success) {
       setScannedPerson(null);
     }
@@ -295,11 +298,16 @@ export default function QRScanner() {
       return;
     }
 
+    if (submitting) return;
+    setSubmitting(true);
+
     const success = await registerPersonAccess(
       manualForm.dni,
       accessType,
       manualForm
     );
+
+    setSubmitting(false);
 
     if (success) {
       setManualMode(false);
@@ -422,10 +430,11 @@ export default function QRScanner() {
 
           <button
             onClick={handleConfirmAccess}
-            className="w-full py-4 bg-brand-primary hover:bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition"
+            disabled={submitting}
+            className="w-full py-4 bg-brand-primary hover:bg-blue-600 disabled:opacity-50 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition"
           >
-            <span>CONFIRMAR REGISTRO</span>
-            <ArrowRight className="w-5 h-5" />
+            <span>{submitting ? 'PROCESANDO...' : 'CONFIRMAR REGISTRO'}</span>
+            {!submitting && <ArrowRight className="w-5 h-5" />}
           </button>
         </div>
       )}
@@ -640,10 +649,11 @@ export default function QRScanner() {
 
             <button
               type="submit"
-              className="w-full py-4 bg-brand-primary hover:bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 mt-2 transition"
+              disabled={submitting}
+              className="w-full py-4 bg-brand-primary hover:bg-blue-600 disabled:opacity-50 text-white font-bold rounded-xl flex items-center justify-center gap-2 mt-2 transition"
             >
-              <span>REGISTRAR ACCESO</span>
-              <ArrowRight className="w-5 h-5" />
+              <span>{submitting ? 'PROCESANDO...' : 'REGISTRAR ACCESO'}</span>
+              {!submitting && <ArrowRight className="w-5 h-5" />}
             </button>
           </div>
         </form>

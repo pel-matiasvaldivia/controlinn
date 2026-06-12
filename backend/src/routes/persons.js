@@ -101,7 +101,10 @@ router.post('/', authenticateToken, async (req, res) => {
     if (dni) {
       const checkResult = await query('SELECT * FROM persons WHERE dni = $1', [dni]);
       if (checkResult.rows.length > 0) {
-        return res.status(400).json({ error: 'Ya existe una persona registrada con ese DNI.' });
+        // En lugar de error, devolvemos la persona existente (Idempotencia)
+        // Podríamos actualizar sus datos aquí si fuera necesario
+        console.log(`[PERSONS] Intento de registro duplicado para DNI ${dni}. Devolviendo registro existente.`);
+        return res.status(200).json(checkResult.rows[0]);
       }
     }
 
