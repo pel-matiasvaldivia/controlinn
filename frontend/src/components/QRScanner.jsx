@@ -535,7 +535,22 @@ export default function QRScanner() {
                   className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-mono text-xl tracking-widest"
                   placeholder="Ej: 28543593"
                   value={manualForm.dni}
-                  onChange={(e) => setManualForm({ ...manualForm, dni: e.target.value })}
+                  onChange={(e) => {
+                    const dniChar = e.target.value;
+                    const state = useStore.getState();
+                    const existing = state.persons.find(p => p.dni === dniChar);
+                    
+                    if (existing) {
+                      setManualForm({ 
+                        ...manualForm, 
+                        dni: dniChar,
+                        first_name: existing.first_name,
+                        last_name: existing.last_name
+                      });
+                    } else {
+                      setManualForm({ ...manualForm, dni: dniChar });
+                    }
+                  }}
                 />
               </div>
             )}
