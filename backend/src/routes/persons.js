@@ -87,9 +87,14 @@ router.post('/scan', authenticateToken, async (req, res) => {
 // Crear persona manualmente
 router.post('/', authenticateToken, async (req, res) => {
   const { dni, first_name, last_name, gender, birth_date, photo } = req.body;
+  let effectiveDni = dni;
+  if (!effectiveDni) {
+    // Si no hay DNI, generamos uno virtual (útil para mecánicos)
+    effectiveDni = `MEC-${Date.now()}`;
+  }
 
-  if (!dni || !first_name || !last_name) {
-    return res.status(400).json({ error: 'DNI, Nombre y Apellido son campos requeridos.' });
+  if (!first_name || !last_name) {
+    return res.status(400).json({ error: 'Nombre y Apellido son campos requeridos.' });
   }
 
   try {
@@ -102,7 +107,7 @@ router.post('/', authenticateToken, async (req, res) => {
       `INSERT INTO persons (dni, first_name, last_name, gender, birth_date, photo) 
        VALUES ($1, $2, $3, $4, $5, $6) 
        RETURNING *`,
-      [dni, first_name.trim().toUpperCase(), last_name.trim().toUpperCase(), gender, birth_date, photo]
+      [effectiveDni, first_name.trim().toUpperCase(), last_name.trim().toUpperCase(), gender, birth_date, photo]
     );
 
     const person = insertResult.rows[0];
