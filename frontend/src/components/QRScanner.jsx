@@ -285,8 +285,12 @@ export default function QRScanner() {
   // Enviar formulario manual
   const handleManualSubmit = async (e) => {
     e.preventDefault();
-    if (!manualForm.dni || !manualForm.first_name || !manualForm.last_name) {
-      alert('Por favor complete los campos obligatorios.');
+    if (manualForm.visitor_type !== 'MECANICO' && !manualForm.dni) {
+      alert('Por favor complete el DNI.');
+      return;
+    }
+    if (!manualForm.first_name || !manualForm.last_name) {
+      alert('Por favor complete el nombre y apellido.');
       return;
     }
 
@@ -456,21 +460,37 @@ export default function QRScanner() {
               >
                 PROVEEDOR
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setManualForm({ ...manualForm, visitor_type: 'MECANICO' });
+                  setAccessType('SALIDA'); // Default para mecánicos es SALIDA
+                }}
+                className={`flex-1 py-2 font-bold rounded-lg text-xs transition ${
+                  manualForm.visitor_type === 'MECANICO'
+                    ? 'bg-brand-primary text-white shadow-sm'
+                    : 'text-brand-muted hover:text-brand-text'
+                }`}
+              >
+                MECÁNICO
+              </button>
             </div>
 
-            <div>
-              <label className="block text-brand-muted text-sm font-bold uppercase tracking-wide mb-1.5 px-1">DNI del Visitante *</label>
-              <input
-                type="text"
-                pattern="\d{7,9}"
-                maxLength="9"
-                required
-                className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-mono text-xl tracking-widest"
-                placeholder="Ej: 28543593"
-                value={manualForm.dni}
-                onChange={(e) => setManualForm({ ...manualForm, dni: e.target.value })}
-              />
-            </div>
+            {manualForm.visitor_type !== 'MECANICO' && (
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="block text-brand-muted text-sm font-bold uppercase tracking-wide mb-1.5 px-1">DNI del Visitante *</label>
+                <input
+                  type="text"
+                  pattern="\d{7,9}"
+                  maxLength="9"
+                  required
+                  className="w-full px-4 py-3.5 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-mono text-xl tracking-widest"
+                  placeholder="Ej: 28543593"
+                  value={manualForm.dni}
+                  onChange={(e) => setManualForm({ ...manualForm, dni: e.target.value })}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>

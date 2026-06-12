@@ -5,22 +5,45 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 
 // Registrar Entrada
 router.post('/entrada', authenticateToken, async (req, res) => {
-  const { personId, dni, uuid, timestamp, plate, origin, destination, visitor_type, reason } = req.body;
+  const { personId, dni, uuid, timestamp, plate, origin, destination, visitor_type, reason, first_name, last_name } = req.body;
   const userId = req.user.id;
 
   try {
     let finalPersonId = personId;
 
-    if (!finalPersonId && dni) {
-      const personRes = await query('SELECT id FROM persons WHERE dni = $1', [dni]);
-      if (personRes.rows.length === 0) {
-        return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístre la primero.' });
+    // Lógica para Mecánicos sin DNI o personas con DNI
+    if (!finalPersonId) {
+      if (dni) {
+        const personRes = await query('SELECT id FROM persons WHERE dni = $1', [dni]);
+        if (personRes.rows.length > 0) {
+          finalPersonId = personRes.rows[0].id;
+        } else if (visitor_type !== 'MECANICO') {
+          return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístre la primero.' });
+        }
       }
-      finalPersonId = personRes.rows[0].id;
+      
+      // Si sigue sin ID y es mecánico, intentamos por nombre
+      if (!finalPersonId && visitor_type === 'MECANICO' && first_name && last_name) {
+        const fName = first_name.trim().toUpperCase();
+        const lName = last_name.trim().toUpperCase();
+        const personRes = await query('SELECT id FROM persons WHERE first_name = $1 AND last_name = $2', [fName, lName]);
+        
+        if (personRes.rows.length > 0) {
+          finalPersonId = personRes.rows[0].id;
+        } else {
+          // Crear persona virtual
+          const virtualDni = `MEC-${fName.slice(0,3)}${lName.slice(0,3)}${Date.now().toString().slice(-4)}`.toUpperCase();
+          const insertRes = await query(
+            'INSERT INTO persons (dni, first_name, last_name) VALUES ($1, $2, $3) RETURNING id',
+            [virtualDni, fName, lName]
+          );
+          finalPersonId = insertRes.rows[0].id;
+        }
+      }
     }
 
     if (!finalPersonId) {
-      return res.status(400).json({ error: 'Se requiere el ID de la persona o su DNI.' });
+      return res.status(400).json({ error: 'Se requiere el ID de la persona, su DNI o nombre (para mecánicos).' });
     }
 
     const logTimestamp = timestamp ? new Date(timestamp) : new Date();
@@ -49,22 +72,45 @@ router.post('/entrada', authenticateToken, async (req, res) => {
 
 // Registrar Salida
 router.post('/salida', authenticateToken, async (req, res) => {
-  const { personId, dni, uuid, timestamp, plate, origin, destination, visitor_type, reason } = req.body;
+  const { personId, dni, uuid, timestamp, plate, origin, destination, visitor_type, reason, first_name, last_name } = req.body;
   const userId = req.user.id;
 
   try {
     let finalPersonId = personId;
 
-    if (!finalPersonId && dni) {
-      const personRes = await query('SELECT id FROM persons WHERE dni = $1', [dni]);
-      if (personRes.rows.length === 0) {
-        return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístre la primero.' });
+    // Lógica para Mecánicos sin DNI o personas con DNI
+    if (!finalPersonId) {
+      if (dni) {
+        const personRes = await query('SELECT id FROM persons WHERE dni = $1', [dni]);
+        if (personRes.rows.length > 0) {
+          finalPersonId = personRes.rows[0].id;
+        } else if (visitor_type !== 'MECANICO') {
+          return res.status(404).json({ error: 'La persona con ese DNI no está registrada. Regístre la primero.' });
+        }
       }
-      finalPersonId = personRes.rows[0].id;
+      
+      // Si sigue sin ID y es mecánico, intentamos por nombre
+      if (!finalPersonId && visitor_type === 'MECANICO' && first_name && last_name) {
+        const fName = first_name.trim().toUpperCase();
+        const lName = last_name.trim().toUpperCase();
+        const personRes = await query('SELECT id FROM persons WHERE first_name = $1 AND last_name = $2', [fName, lName]);
+        
+        if (personRes.rows.length > 0) {
+          finalPersonId = personRes.rows[0].id;
+        } else {
+          // Crear persona virtual
+          const virtualDni = `MEC-${fName.slice(0,3)}${lName.slice(0,3)}${Date.now().toString().slice(-4)}`.toUpperCase();
+          const insertRes = await query(
+            'INSERT INTO persons (dni, first_name, last_name) VALUES ($1, $2, $3) RETURNING id',
+            [virtualDni, fName, lName]
+          );
+          finalPersonId = insertRes.rows[0].id;
+        }
+      }
     }
 
     if (!finalPersonId) {
-      return res.status(400).json({ error: 'Se requiere el ID de la persona o su DNI.' });
+      return res.status(400).json({ error: 'Se requiere el ID de la persona, su DNI o nombre (para mecánicos).' });
     }
 
     const logTimestamp = timestamp ? new Date(timestamp) : new Date();
