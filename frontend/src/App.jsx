@@ -6,7 +6,9 @@ import RTSPViewer from './components/RTSPViewer';
 import AccessLog from './components/AccessLog';
 import Settings from './components/Settings';
 import MechanicService from './components/MechanicService';
-import { User, Shield, Wifi, WifiOff, LogOut, ClipboardList, Car, RefreshCw, SlidersHorizontal, Wrench } from 'lucide-react';
+import Reports from './components/Reports';
+import { User, Shield, Wifi, WifiOff, LogOut, ClipboardList, Car, RefreshCw, SlidersHorizontal, Wrench, BarChart3 } from 'lucide-react';
+
 
 export default function App() {
   const { 
@@ -119,6 +121,8 @@ export default function App() {
           {activeTab === 'historial' && <AccessLog />}
           {activeTab === 'configuracion' && <Settings />}
           {activeTab === 'mecanica' && <MechanicService />}
+          {activeTab === 'reportes' && <Reports />}
+
         </div>
       </main>
 
@@ -177,6 +181,20 @@ export default function App() {
           <ClipboardList className={`w-6 h-6 transition-transform ${activeTab === 'historial' ? 'scale-110' : ''}`} />
           <span className="text-[10px] tracking-wide font-medium">Historial</span>
         </button>
+
+        {/* Tab Reportes */}
+        <button
+          onClick={() => setTab('reportes')}
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
+            activeTab === 'reportes' 
+              ? 'text-brand-primary font-bold' 
+              : 'text-brand-muted hover:text-brand-text'
+          }`}
+        >
+          <BarChart3 className={`w-6 h-6 transition-transform ${activeTab === 'reportes' ? 'scale-110' : ''}`} />
+          <span className="text-[10px] tracking-wide font-medium">Reportes</span>
+        </button>
+
 
         {/* Tab Configuración */}
         <button
