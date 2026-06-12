@@ -36,7 +36,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pb-20">
       {/* Header */}
       <div className="flex items-center gap-3 pb-1">
         <div className="p-2.5 bg-brand-primary/10 text-brand-primary rounded-xl border border-brand-primary/20">
@@ -71,7 +71,7 @@ export default function Settings() {
       </div>
 
       {/* Contenido de la Tab */}
-      <div className="bg-brand-card rounded-2xl border border-brand-border p-6 flex flex-col gap-5 shadow-sm">
+      <div className="bg-brand-card rounded-2xl border border-brand-border p-6 flex flex-col gap-5 shadow-sm mb-4">
         
         {/* SECTORES GENERALES */}
         {activeSubTab === 'general' && (
@@ -79,6 +79,14 @@ export default function Settings() {
             <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
               <SettingsIcon className="w-4 h-4" /> Sectores de Destino (Clientes/Proveedores)
             </h3>
+            
+            {isAdmin && (
+              <div className="flex gap-3 mb-2 p-1">
+                <input type="text" className="flex-1 px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text font-medium focus:outline-none focus:border-brand-primary" placeholder="Nuevo sector..." value={newGeneral} onChange={e => setNewGeneral(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setLocalSectors([...localSectors, newGeneral.trim()]), setNewGeneral(''))} />
+                <button onClick={() => { if(newGeneral) { setLocalSectors([...localSectors, newGeneral.trim()]); setNewGeneral(''); } }} className="p-3 bg-brand-primary text-white rounded-xl transition shadow-md"><Plus className="w-6 h-6" /></button>
+              </div>
+            )}
+
             <div className="flex flex-col gap-2.5">
               {localSectors.map((s, i) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 bg-brand-bg border border-brand-border rounded-xl">
@@ -91,12 +99,6 @@ export default function Settings() {
                 </div>
               ))}
             </div>
-            {isAdmin && (
-              <div className="flex gap-3 mt-2">
-                <input type="text" className="flex-1 px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text font-medium focus:outline-none focus:border-brand-primary" placeholder="Nuevo sector..." value={newGeneral} onChange={e => setNewGeneral(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setLocalSectors([...localSectors, newGeneral]), setNewGeneral(''))} />
-                <button onClick={() => { if(newGeneral) { setLocalSectors([...localSectors, newGeneral.trim()]); setNewGeneral(''); } }} className="p-3 bg-brand-primary text-white rounded-xl transition"><Plus className="w-6 h-6" /></button>
-              </div>
-            )}
           </>
         )}
 
@@ -106,6 +108,14 @@ export default function Settings() {
             <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
               <MapPin className="w-4 h-4" /> Destinos Exclusivos Mecánica
             </h3>
+
+            {isAdmin && (
+              <div className="flex gap-3 mb-2 p-1">
+                <input type="text" className="flex-1 px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text font-medium focus:outline-none focus:border-brand-primary" placeholder="Ej: Taller Norte, Prueba Ruta..." value={newMechDest} onChange={e => setNewMechDest(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setLocalMechDest([...localMechDest, newMechDest.trim()]), setNewMechDest(''))} />
+                <button onClick={() => { if(newMechDest) { setLocalMechDest([...localMechDest, newMechDest.trim()]); setNewMechDest(''); } }} className="p-3 bg-brand-primary text-white rounded-xl transition shadow-md"><Plus className="w-6 h-6" /></button>
+              </div>
+            )}
+
             <div className="flex flex-col gap-2.5">
               {localMechDest.map((s, i) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 bg-brand-bg border border-brand-border rounded-xl">
@@ -118,12 +128,6 @@ export default function Settings() {
                 </div>
               ))}
             </div>
-            {isAdmin && (
-              <div className="flex gap-3 mt-2">
-                <input type="text" className="flex-1 px-4 py-3 bg-brand-bg border border-brand-border rounded-xl text-brand-text font-medium focus:outline-none focus:border-brand-primary" placeholder="Ej: Taller Norte, Prueba Ruta..." value={newMechDest} onChange={e => setNewMechDest(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setLocalMechDest([...localMechDest, newMechDest.trim()]), setNewMechDest(''))} />
-                <button onClick={() => { if(newMechDest) { setLocalMechDest([...localMechDest, newMechDest.trim()]); setNewMechDest(''); } }} className="p-3 bg-brand-primary text-white rounded-xl transition"><Plus className="w-6 h-6" /></button>
-              </div>
-            )}
           </>
         )}
 
@@ -133,6 +137,19 @@ export default function Settings() {
             <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
               <Users className="w-4 h-4" /> Personal de Mecánica Conocido
             </h3>
+
+            {isAdmin && (
+              <div className="flex flex-col gap-3 mb-4 p-4 bg-brand-primary/5 border border-brand-primary/20 rounded-2xl border-dashed">
+                <p className="text-[10px] font-bold text-brand-primary uppercase">Agregar Nuevo Personal</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="text" className="px-3 py-2.5 bg-white border border-brand-border rounded-xl text-sm font-medium focus:outline-none focus:border-brand-primary" placeholder="Nombre" value={newStaff.name} onChange={e => setNewStaff({...newStaff, name: e.target.value})} />
+                  <input type="text" className="px-3 py-2.5 bg-white border border-brand-border rounded-xl text-sm font-medium focus:outline-none focus:border-brand-primary" placeholder="Apellido" value={newStaff.surname} onChange={e => setNewStaff({...newStaff, surname: e.target.value})} />
+                  <input type="text" className="col-span-2 px-3 py-2.5 bg-white border-2 border-brand-primary/30 rounded-xl text-sm font-black focus:outline-none focus:border-brand-primary" placeholder="CÓDIGO ÚNICO (Eje: M01)" value={newStaff.code} onChange={e => setNewStaff({...newStaff, code: e.target.value.toUpperCase()})} />
+                </div>
+                <button onClick={() => { if(newStaff.name && newStaff.code) { setLocalMechStaff([...localMechStaff, {...newStaff, name: newStaff.name.trim(), surname: newStaff.surname.trim(), code: newStaff.code.trim().toUpperCase()}]); setNewStaff({name:'', surname:'', code:''}); } }} className="w-full py-3 bg-brand-primary text-white font-black text-xs rounded-xl transition uppercase shadow-md hover:bg-blue-600">Agregar Personal</button>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 gap-3">
               {localMechStaff.map((m, i) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3 bg-brand-bg border border-brand-border rounded-xl">
@@ -148,17 +165,6 @@ export default function Settings() {
                 </div>
               ))}
             </div>
-            {isAdmin && (
-              <div className="flex flex-col gap-3 mt-4 p-4 bg-brand-bg border border-brand-border rounded-2xl border-dashed">
-                <p className="text-[10px] font-bold text-brand-muted uppercase">Agregar Nuevo Personal</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="text" className="px-3 py-2 bg-white border border-brand-border rounded-xl text-sm font-medium" placeholder="Nombre" value={newStaff.name} onChange={e => setNewStaff({...newStaff, name: e.target.value})} />
-                  <input type="text" className="px-3 py-2 bg-white border border-brand-border rounded-xl text-sm font-medium" placeholder="Apellido" value={newStaff.surname} onChange={e => setNewStaff({...newStaff, surname: e.target.value})} />
-                  <input type="text" className="col-span-2 px-3 py-2 bg-white border-2 border-brand-primary/30 rounded-xl text-sm font-black" placeholder="CÓDIGO ÚNICO (Eje: M01)" value={newStaff.code} onChange={e => setNewStaff({...newStaff, code: e.target.value.toUpperCase()})} />
-                </div>
-                <button onClick={() => { if(newStaff.name && newStaff.code) { setLocalMechStaff([...localMechStaff, {...newStaff, name: newStaff.name.trim(), surname: newStaff.surname.trim(), code: newStaff.code.trim().toUpperCase()}]); setNewStaff({name:'', surname:'', code:''}); } }} className="w-full py-2.5 bg-brand-primary text-white font-black text-xs rounded-xl transition uppercase">Agregar Personal</button>
-              </div>
-            )}
           </>
         )}
       </div>
