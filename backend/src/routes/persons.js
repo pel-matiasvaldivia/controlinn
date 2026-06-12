@@ -98,9 +98,11 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 
   try {
-    const checkResult = await query('SELECT * FROM persons WHERE dni = $1', [dni]);
-    if (checkResult.rows.length > 0) {
-      return res.status(400).json({ error: 'Ya existe una persona registrada con ese DNI.' });
+    if (dni) {
+      const checkResult = await query('SELECT * FROM persons WHERE dni = $1', [dni]);
+      if (checkResult.rows.length > 0) {
+        return res.status(400).json({ error: 'Ya existe una persona registrada con ese DNI.' });
+      }
     }
 
     const insertResult = await query(

@@ -127,88 +127,92 @@ export default function App() {
       </main>
 
 
-      {/* BARRA DE NAVEGACIÓN MÓVIL */}
-      <nav className="bg-brand-card border-t border-brand-border py-2 px-3 flex justify-around items-center fixed bottom-0 left-0 right-0 z-30 shadow-[0_-2px_12px_rgba(0,0,0,0.08)]">
+      {/* BARRA DE NAVEGACIÓN (Auto-ocultable) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 group h-20 flex flex-col justify-end">
+        {/* Trigger Area (Invisible pero captura el hover) */}
+        <div className="absolute inset-0 pointer-events-auto" />
         
-        {/* Tab Personas */}
-        <button
-          onClick={() => setTab('personas')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
-            activeTab === 'personas' 
-              ? 'text-brand-primary font-bold' 
-              : 'text-brand-muted hover:text-brand-text'
-          }`}
-        >
-          <ClipboardList className={`w-6 h-6 transition-transform ${activeTab === 'personas' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Personas</span>
-        </button>
+        <nav className="bg-white/95 backdrop-blur-md border-t border-brand-border py-3 px-4 flex justify-around items-center translate-y-[80%] group-hover:translate-y-0 transition-transform duration-300 ease-out shadow-[0_-4px_20px_rgba(0,0,0,0.1)] relative z-50">
+          
+          {/* Tab Personas */}
+          <button
+            onClick={() => setTab('personas')}
+            className={`flex flex-col items-center gap-1.5 py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+              activeTab === 'personas' 
+                ? 'text-brand-primary bg-brand-primary/5 scale-105' 
+                : 'text-brand-muted hover:text-brand-text hover:bg-slate-50'
+            }`}
+          >
+            <ClipboardList className={`w-6 h-6 ${activeTab === 'personas' ? 'stroke-[2.5px]' : ''}`} />
+            <span className="text-[10px] tracking-widest font-black uppercase">Personas</span>
+          </button>
 
-        {/* Tab Vehículos */}
-        <button
-          onClick={() => setTab('vehiculos')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
-            activeTab === 'vehiculos' 
-              ? 'text-brand-primary font-bold' 
-              : 'text-brand-muted hover:text-brand-text'
-          }`}
-        >
-          <Car className={`w-6 h-6 transition-transform ${activeTab === 'vehiculos' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Vehículos</span>
-        </button>
+          {/* Tab Vehículos */}
+          <button
+            onClick={() => setTab('vehiculos')}
+            className={`flex flex-col items-center gap-1.5 py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+              activeTab === 'vehiculos' 
+                ? 'text-brand-primary bg-brand-primary/5 scale-105' 
+                : 'text-brand-muted hover:text-brand-text hover:bg-slate-50'
+            }`}
+          >
+            <Car className={`w-6 h-6 ${activeTab === 'vehiculos' ? 'stroke-[2.5px]' : ''}`} />
+            <span className="text-[10px] tracking-widest font-black uppercase">Vehículos</span>
+          </button>
 
-        {/* Tab Mecánica */}
-        <button
-          onClick={() => setTab('mecanica')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
-            activeTab === 'mecanica' 
-              ? 'text-brand-primary font-bold' 
-              : 'text-brand-muted hover:text-brand-text'
-          }`}
-        >
-          <Wrench className={`w-6 h-6 transition-transform ${activeTab === 'mecanica' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Mecánica</span>
-        </button>
+          {/* Tab Mecánica */}
+          <button
+            onClick={() => setTab('mecanica')}
+            className={`flex flex-col items-center gap-1.5 py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+              activeTab === 'mecanica' 
+                ? 'text-brand-primary bg-brand-primary/5 scale-105' 
+                : 'text-brand-muted hover:text-brand-text hover:bg-slate-50'
+            }`}
+          >
+            <Wrench className={`w-6 h-6 ${activeTab === 'mecanica' ? 'stroke-[2.5px]' : ''}`} />
+            <span className="text-[10px] tracking-widest font-black uppercase">Mecánica</span>
+          </button>
 
-        {/* Tab Historial */}
-        <button
-          onClick={() => setTab('historial')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
-            activeTab === 'historial' 
-              ? 'text-brand-primary font-bold' 
-              : 'text-brand-muted hover:text-brand-text'
-          }`}
-        >
-          <ClipboardList className={`w-6 h-6 transition-transform ${activeTab === 'historial' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Historial</span>
-        </button>
+          {/* Tab Historial */}
+          <button
+            onClick={() => setTab('historial')}
+            className={`flex flex-col items-center gap-1.5 py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+              activeTab === 'historial' 
+                ? 'text-brand-primary bg-brand-primary/5 scale-105' 
+                : 'text-brand-muted hover:text-brand-text hover:bg-slate-50'
+            }`}
+          >
+            <ClipboardList className={`w-6 h-6 ${activeTab === 'historial' ? 'stroke-[2.5px]' : ''}`} />
+            <span className="text-[10px] tracking-widest font-black uppercase">Historial</span>
+          </button>
 
-        {/* Tab Reportes */}
-        <button
-          onClick={() => setTab('reportes')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
-            activeTab === 'reportes' 
-              ? 'text-brand-primary font-bold' 
-              : 'text-brand-muted hover:text-brand-text'
-          }`}
-        >
-          <BarChart3 className={`w-6 h-6 transition-transform ${activeTab === 'reportes' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Reportes</span>
-        </button>
+          {/* Tab Reportes */}
+          <button
+            onClick={() => setTab('reportes')}
+            className={`flex flex-col items-center gap-1.5 py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+              activeTab === 'reportes' 
+                ? 'text-brand-primary bg-brand-primary/5 scale-105' 
+                : 'text-brand-muted hover:text-brand-text hover:bg-slate-50'
+            }`}
+          >
+            <BarChart3 className={`w-6 h-6 ${activeTab === 'reportes' ? 'stroke-[2.5px]' : ''}`} />
+            <span className="text-[10px] tracking-widest font-black uppercase">Reportes</span>
+          </button>
 
-
-        {/* Tab Configuración */}
-        <button
-          onClick={() => setTab('configuracion')}
-          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition duration-150 touch-feedback ${
-            activeTab === 'configuracion' 
-              ? 'text-brand-primary font-bold' 
-              : 'text-brand-muted hover:text-brand-text'
-          }`}
-        >
-          <SlidersHorizontal className={`w-6 h-6 transition-transform ${activeTab === 'configuracion' ? 'scale-110' : ''}`} />
-          <span className="text-[10px] tracking-wide font-medium">Config.</span>
-        </button>
-      </nav>
+          {/* Tab Configuración */}
+          <button
+            onClick={() => setTab('configuracion')}
+            className={`flex flex-col items-center gap-1.5 py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+              activeTab === 'configuracion' 
+                ? 'text-brand-primary bg-brand-primary/5 scale-105' 
+                : 'text-brand-muted hover:text-brand-text hover:bg-slate-50'
+            }`}
+          >
+            <SlidersHorizontal className={`w-6 h-6 ${activeTab === 'configuracion' ? 'stroke-[2.5px]' : ''}`} />
+            <span className="text-[10px] tracking-widest font-black uppercase">Config.</span>
+          </button>
+        </nav>
+      </div>
     </div>
   );
 }
