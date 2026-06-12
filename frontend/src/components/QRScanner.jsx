@@ -475,7 +475,7 @@ export default function QRScanner() {
                 type="button"
                 onClick={() => {
                   setManualForm({ ...manualForm, visitor_type: 'MECANICO' });
-                  setAccessType('SALIDA'); // Default para mecánicos es SALIDA
+                  setAccessType('SALIDA'); // Default para personal es SALIDA
                 }}
                 className={`flex-1 py-2 font-bold rounded-lg text-xs transition ${
                   manualForm.visitor_type === 'MECANICO'
@@ -483,7 +483,7 @@ export default function QRScanner() {
                     : 'text-brand-muted hover:text-brand-text'
                 }`}
               >
-                MECÁNICO
+                PERSONAL
               </button>
             </div>
 
@@ -516,9 +516,14 @@ export default function QRScanner() {
                   <p className="text-[10px] text-brand-muted font-bold italic pl-1">Código no encontrado. Ingrese datos manualmente debajo.</p>
                 )}
                 {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code) && (
-                  <div className="flex items-center gap-2 pl-1 animate-in fade-in duration-300">
-                    <Check className="w-4 h-4 text-brand-success" />
-                    <p className="text-xs font-bold text-brand-success uppercase">Identificado: {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code).surname}, {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code).name}</p>
+                  <div className="flex flex-col gap-1 pl-1 animate-in fade-in duration-300">
+                    <div className="flex items-center gap-2">
+                       <Check className="w-4 h-4 text-brand-success" />
+                       <p className="text-xs font-bold text-brand-success uppercase">Identificado: {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code).surname}, {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code).name}</p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-6">
+                       <span className="text-[10px] font-black text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full uppercase">SECTOR: {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code).sector || 'SIN ASIGNAR'}</span>
+                    </div>
                   </div>
                 )}
               </div>

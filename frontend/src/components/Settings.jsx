@@ -13,7 +13,7 @@ export default function Settings() {
 
   const [newGeneral, setNewGeneral] = useState('');
   const [newMechDest, setNewMechDest] = useState('');
-  const [newStaff, setNewStaff] = useState({ name: '', surname: '', code: '' });
+  const [newStaff, setNewStaff] = useState({ name: '', surname: '', code: '', sector: '' });
 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -52,8 +52,8 @@ export default function Settings() {
       <div className="flex gap-2 p-1.5 bg-brand-border/30 rounded-2xl">
         {[
           { id: 'general', label: 'General', icon: <SettingsIcon className="w-4 h-4" /> },
-          { id: 'mechanic_dest', label: 'Destinos Mecánica', icon: <MapPin className="w-4 h-4" /> },
-          { id: 'mechanic_staff', label: 'Personal Mecánica', icon: <Users className="w-4 h-4" /> }
+          { id: 'mechanic_dest', label: 'Destinos Personal', icon: <MapPin className="w-4 h-4" /> },
+          { id: 'mechanic_staff', label: 'Personal Interno', icon: <Users className="w-4 h-4" /> }
         ].map(tab => (
           <button
             key={tab.id}
@@ -102,11 +102,11 @@ export default function Settings() {
           </>
         )}
 
-        {/* DESTINOS MECÁNICA */}
+        {/* DESTINOS PERSONAL */}
         {activeSubTab === 'mechanic_dest' && (
           <>
             <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
-              <MapPin className="w-4 h-4" /> Destinos Exclusivos Mecánica
+              <MapPin className="w-4 h-4" /> Destinos Exclusivos Personal Interno
             </h3>
 
             {isAdmin && (
@@ -131,11 +131,11 @@ export default function Settings() {
           </>
         )}
 
-        {/* PERSONAL DE MECÁNICA */}
+        {/* PERSONAL INTERNO */}
         {activeSubTab === 'mechanic_staff' && (
           <>
             <h3 className="text-sm font-bold text-brand-muted uppercase tracking-wider flex items-center gap-2">
-              <Users className="w-4 h-4" /> Personal de Mecánica Conocido
+              <Users className="w-4 h-4" /> Gestión de Personal Interno
             </h3>
 
             {isAdmin && (
@@ -144,9 +144,10 @@ export default function Settings() {
                 <div className="grid grid-cols-2 gap-3">
                   <input type="text" className="px-3 py-2.5 bg-white border border-brand-border rounded-xl text-sm font-medium focus:outline-none focus:border-brand-primary" placeholder="Nombre" value={newStaff.name} onChange={e => setNewStaff({...newStaff, name: e.target.value})} />
                   <input type="text" className="px-3 py-2.5 bg-white border border-brand-border rounded-xl text-sm font-medium focus:outline-none focus:border-brand-primary" placeholder="Apellido" value={newStaff.surname} onChange={e => setNewStaff({...newStaff, surname: e.target.value})} />
-                  <input type="text" className="col-span-2 px-3 py-2.5 bg-white border-2 border-brand-primary/30 rounded-xl text-sm font-black focus:outline-none focus:border-brand-primary" placeholder="CÓDIGO ÚNICO (Eje: M01)" value={newStaff.code} onChange={e => setNewStaff({...newStaff, code: e.target.value.toUpperCase()})} />
+                  <input type="text" className="col-span-1 px-3 py-2.5 bg-white border border-brand-border rounded-xl text-sm font-medium focus:outline-none focus:border-brand-primary" placeholder="Sector (ej: Ventas)" value={newStaff.sector} onChange={e => setNewStaff({...newStaff, sector: e.target.value})} />
+                  <input type="text" className="col-span-1 px-3 py-2.5 bg-white border-2 border-brand-primary/30 rounded-xl text-sm font-black focus:outline-none focus:border-brand-primary" placeholder="CÓDIGO" value={newStaff.code} onChange={e => setNewStaff({...newStaff, code: e.target.value.toUpperCase()})} />
                 </div>
-                <button onClick={() => { if(newStaff.name && newStaff.code) { setLocalMechStaff([...localMechStaff, {...newStaff, name: newStaff.name.trim(), surname: newStaff.surname.trim(), code: newStaff.code.trim().toUpperCase()}]); setNewStaff({name:'', surname:'', code:''}); } }} className="w-full py-3 bg-brand-primary text-white font-black text-xs rounded-xl transition uppercase shadow-md hover:bg-blue-600">Agregar Personal</button>
+                <button onClick={() => { if(newStaff.name && newStaff.code) { setLocalMechStaff([...localMechStaff, {...newStaff, name: newStaff.name.trim(), surname: newStaff.surname.trim(), code: newStaff.code.trim().toUpperCase(), sector: newStaff.sector.trim().toUpperCase()}]); setNewStaff({name:'', surname:'', code:'', sector:''}); } }} className="w-full py-3 bg-brand-primary text-white font-black text-xs rounded-xl transition uppercase shadow-md hover:bg-blue-600">Agregar Personal</button>
               </div>
             )}
 
@@ -155,7 +156,10 @@ export default function Settings() {
                 <div key={i} className="flex items-center justify-between px-4 py-3 bg-brand-bg border border-brand-border rounded-xl">
                   <div className="flex flex-col">
                     <span className="text-brand-text font-bold">{m.surname}, {m.name}</span>
-                    <span className="text-brand-primary font-black text-xs">CÓDIGO: {m.code}</span>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-brand-primary font-black text-[10px]">CÓDIGO: {m.code}</span>
+                      <span className="text-brand-muted font-bold text-[10px] uppercase bg-brand-bg px-1.5 rounded">{m.sector || 'SIN SECTOR'}</span>
+                    </div>
                   </div>
                   {isAdmin && (
                     <button onClick={() => setLocalMechStaff(localMechStaff.filter((_, idx) => idx !== i))} className="p-1.5 text-brand-muted hover:text-brand-danger rounded-lg transition">
@@ -189,7 +193,7 @@ export default function Settings() {
             ) : (
               <>
                 <Save className="w-6 h-6" />
-                <span>{saving ? 'GUARDANDO...' : `GUARDAR ${activeSubTab === 'general' ? 'DESTINOS' : activeSubTab === 'mechanic_dest' ? 'DESTINOS MEC.' : 'PERSONAL'}`}</span>
+                <span>{saving ? 'GUARDANDO...' : `GUARDAR ${activeSubTab === 'general' ? 'DESTINOS' : activeSubTab === 'mechanic_dest' ? 'DESTINOS PERS.' : 'PERSONAL'}`}</span>
               </>
             )}
           </button>
