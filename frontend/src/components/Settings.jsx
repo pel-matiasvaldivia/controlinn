@@ -163,27 +163,31 @@ export default function Settings() {
         )}
       </div>
 
-      {/* Guardar (solo admin) */}
+      {/* Guardar (solo admin) - Barra Fija */}
       {isAdmin && (
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={`flex items-center justify-center gap-2 w-full py-4 font-black text-lg rounded-2xl transition shadow-lg ${
-            saved ? 'bg-brand-success text-white' : 'bg-brand-primary hover:bg-blue-600 text-white disabled:opacity-60'
-          }`}
-        >
-          {saved ? (
-            <>
-              <Check className="w-6 h-6" />
-              <span>CAMBIOS GUARDADOS</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-6 h-6" />
-              <span>{saving ? 'GUARDANDO...' : `GUARDAR ${activeSubTab === 'general' ? 'DESTINOS' : activeSubTab === 'mechanic_dest' ? 'DESTINOS MEC.' : 'PERSONAL'}`}</span>
-            </>
-          )}
-        </button>
+        <div className="sticky bottom-0 pt-4 pb-6 bg-brand-bg/90 backdrop-blur-sm z-30 -mt-2">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`flex items-center justify-center gap-2 w-full py-4 font-black text-lg rounded-2xl transition shadow-xl border-2 ${
+              saved 
+                ? 'bg-brand-success border-brand-success text-white' 
+                : 'bg-brand-primary border-brand-primary hover:bg-blue-600 text-white disabled:opacity-60'
+            }`}
+          >
+            {saved ? (
+              <>
+                <Check className="w-6 h-6" />
+                <span>CAMBIOS GUARDADOS</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-6 h-6" />
+                <span>{saving ? 'GUARDANDO...' : `GUARDAR ${activeSubTab === 'general' ? 'DESTINOS' : activeSubTab === 'mechanic_dest' ? 'DESTINOS MEC.' : 'PERSONAL'}`}</span>
+              </>
+            )}
+          </button>
+        </div>
       )}
 
       {!isAdmin && (
