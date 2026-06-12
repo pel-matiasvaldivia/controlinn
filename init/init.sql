@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS mechanic_services (
   timestamp TIMESTAMP DEFAULT NOW(),
   user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   synced BOOLEAN DEFAULT FALSE,
+  document_nro VARCHAR(100),
   created_at TIMESTAMP DEFAULT NOW()
 );
 

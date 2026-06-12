@@ -86,6 +86,7 @@ async function initializeDatabase() {
     `ALTER TABLE access_logs ADD COLUMN IF NOT EXISTS reason TEXT`,
     `ALTER TABLE vehicle_access_logs ADD COLUMN IF NOT EXISTS origin VARCHAR(100)`,
     `ALTER TABLE vehicle_access_logs ADD COLUMN IF NOT EXISTS destination VARCHAR(100)`,
+    `ALTER TABLE mechanic_services ADD COLUMN IF NOT EXISTS document_nro VARCHAR(100)`,
     
     // Configuración inicial de sectores
     `INSERT INTO settings (key, value) VALUES ('sectors', '["Administración", "Producción", "Ventas", "Carga/Descarga", "Taller"]') ON CONFLICT (key) DO NOTHING`
@@ -163,6 +164,7 @@ async function initializeDatabase() {
       user_id INTEGER,
       synced INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      document_nro TEXT,
       FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
     )`,
     `CREATE TABLE IF NOT EXISTS settings (

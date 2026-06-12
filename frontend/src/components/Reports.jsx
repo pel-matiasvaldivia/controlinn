@@ -252,9 +252,17 @@ export default function Reports() {
                       ) : '-'}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1 text-brand-muted">
-                        <MapPin className="w-3 h-3 text-brand-primary" />
-                        <span className="text-[11px] font-semibold">{row.destination || '-'}</span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1 text-brand-muted">
+                          <MapPin className="w-3 h-3 text-brand-primary" />
+                          <span className="text-[11px] font-semibold">{row.destination || '-'}</span>
+                        </div>
+                        {row.document_nro && (
+                          <div className="flex items-center gap-1">
+                            <ClipboardList className="w-3 h-3 text-brand-warning" />
+                            <span className="text-[10px] font-black text-brand-warning tracking-tighter bg-amber-50 px-1 rounded border border-amber-100">DOC: {row.document_nro}</span>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>

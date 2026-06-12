@@ -16,6 +16,7 @@ export function pairMechanicLogs(logs = []) {
     } else {
       if (pending[key] !== undefined) {
         sessions[pending[key]].exit_timestamp = log.timestamp;
+        sessions[pending[key]].document_nro = log.document_nro; // Preservar remito de la salida
         delete pending[key];
       } else {
         sessions.push({ ...log, exit_timestamp: log.timestamp });

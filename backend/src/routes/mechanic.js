@@ -32,7 +32,7 @@ router.post('/entrada', authenticateToken, async (req, res) => {
 
 // POST /mechanic/salida — Registrar egreso de moto por nombre de cliente
 router.post('/salida', authenticateToken, async (req, res) => {
-  const { client_name, uuid, timestamp } = req.body;
+  const { client_name, uuid, timestamp, document_nro } = req.body;
   const userId = req.user.id;
 
   if (!client_name) {
@@ -59,10 +59,10 @@ router.post('/salida', authenticateToken, async (req, res) => {
     const prev = prevRes.rows[0];
 
     const result = await query(
-      `INSERT INTO mechanic_services (uuid, plate, brand, model, client_name, access_type, timestamp, user_id, synced)
-       VALUES ($1, $2, $3, $4, $5, 'SALIDA', $6, $7, $8)
+      `INSERT INTO mechanic_services (uuid, plate, brand, model, client_name, access_type, timestamp, user_id, synced, document_nro)
+       VALUES ($1, $2, $3, $4, $5, 'SALIDA', $6, $7, $8, $9)
        RETURNING *`,
-      [logUuid, prev.plate, prev.brand || null, prev.model || null, prev.client_name || null, logTimestamp, userId, !uuid]
+      [logUuid, prev.plate, prev.brand || null, prev.model || null, prev.client_name || null, logTimestamp, userId, !uuid, document_nro || null]
     );
 
     res.status(201).json({ success: true, log: result.rows[0], message: 'Egreso de moto registrado.' });

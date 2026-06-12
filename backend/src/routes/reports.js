@@ -20,7 +20,8 @@ router.get('/', authenticateToken, async (req, res) => {
         'PERSONA' as log_type,
         al.id, al.timestamp, al.access_type, 
         p.dni as identifier, (p.first_name || ' ' || p.last_name) as name, 
-        al.plate, al.origin, al.destination, al.visitor_type, al.reason
+        al.plate, al.origin, al.destination, al.visitor_type, al.reason,
+        NULL as document_nro
     FROM access_logs al
     JOIN persons p ON al.person_id = p.id
 
@@ -30,7 +31,8 @@ router.get('/', authenticateToken, async (req, res) => {
         'VEHICULO' as log_type,
         val.id, val.timestamp, val.access_type, 
         v.plate as identifier, v.driver_name as name, 
-        v.plate, val.origin, val.destination, 'VEHICULO' as visitor_type, NULL as reason
+        v.plate, val.origin, val.destination, 'VEHICULO' as visitor_type, NULL as reason,
+        NULL as document_nro
     FROM vehicle_access_logs val
     JOIN vehicles v ON val.vehicle_id = v.id
 
@@ -40,7 +42,8 @@ router.get('/', authenticateToken, async (req, res) => {
         'MECANICO' as log_type,
         ms.id, ms.timestamp, ms.access_type, 
         ms.plate as identifier, ms.client_name as name, 
-        ms.plate, NULL as origin, 'Taller' as destination, 'MECANICO' as visitor_type, NULL as reason
+        ms.plate, NULL as origin, 'Taller' as destination, 'MECANICO' as visitor_type, NULL as reason,
+        ms.document_nro
     FROM mechanic_services ms
   `;
 

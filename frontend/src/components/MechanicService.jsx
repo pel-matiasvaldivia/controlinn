@@ -18,6 +18,7 @@ export default function MechanicService() {
   });
 
   const [salidaClient, setSalidaClient] = useState('');
+  const [documentNro, setDocumentNro] = useState('');
 
   // Cargar logs del día
   const loadLogs = async () => {
@@ -63,9 +64,13 @@ export default function MechanicService() {
 
     setLoading(true);
     try {
-      await apiClient.post('/mechanic/salida', { client_name: salidaClient });
+      await apiClient.post('/mechanic/salida', { 
+        client_name: salidaClient,
+        document_nro: documentNro
+      });
       setSuccess(`Egreso registrado para cliente ${salidaClient}`);
       setSalidaClient('');
+      setDocumentNro('');
       await loadLogs();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al registrar el egreso.');
@@ -182,6 +187,16 @@ export default function MechanicService() {
               className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-semibold text-lg"
             />
           </div>
+          <div>
+            <label className="block text-brand-muted text-xs font-semibold mb-1.5 uppercase tracking-wide">Factura / Remito Nro</label>
+            <input
+              type="text"
+              placeholder="Nro de comprobante..."
+              value={documentNro}
+              onChange={(e) => setDocumentNro(e.target.value)}
+              className="w-full px-4 py-3 bg-brand-bg border border-brand-border focus:border-brand-primary focus:outline-none rounded-xl text-brand-text font-bold"
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}
@@ -256,7 +271,6 @@ export default function MechanicService() {
                         {entryDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
-                    
                     {exitDate && (
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] text-brand-warning font-black uppercase tracking-tighter">Egreso</span>
@@ -267,6 +281,13 @@ export default function MechanicService() {
                       </div>
                     )}
                   </div>
+
+                  {log.document_nro && (
+                    <div className="mt-2 pt-2 border-t border-brand-border/20 flex items-center justify-between">
+                       <span className="text-[10px] text-brand-muted font-black uppercase">Factura / Remito</span>
+                       <span className="text-xs font-bold text-brand-primary bg-brand-primary/5 px-2 py-0.5 rounded border border-brand-primary/10 tracking-widest">{log.document_nro}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             );
