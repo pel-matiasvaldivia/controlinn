@@ -19,7 +19,8 @@ export default function QRScanner() {
     origin: '',
     destination: '',
     visitor_type: 'CLIENTE',
-    reason: ''
+    reason: '',
+    mechanic_code: ''
   });
 
   const videoRef = useRef(null);
@@ -310,7 +311,8 @@ export default function QRScanner() {
         origin: '',
         destination: '',
         visitor_type: 'CLIENTE',
-        reason: ''
+        reason: '',
+        mechanic_code: ''
       });
     }
   };
@@ -476,6 +478,43 @@ export default function QRScanner() {
               </button>
             </div>
 
+            {/* Selector de Mecánico por Código */}
+            {manualForm.visitor_type === 'MECANICO' && (
+              <div className="flex flex-col gap-2 p-4 bg-brand-primary/5 border border-brand-primary/20 rounded-2xl animate-in zoom-in-95 duration-200">
+                <label className="block text-brand-primary text-xs font-black uppercase tracking-widest pl-1">Selección por Código Único</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 bg-white border-2 border-brand-primary/30 focus:border-brand-primary focus:outline-none rounded-xl text-brand-primary font-black text-xl tracking-widest placeholder:text-brand-primary/30"
+                  placeholder="INGRESE CÓDIGO (Eje: M01)"
+                  value={manualForm.mechanic_code}
+                  onChange={(e) => {
+                    const code = e.target.value.toUpperCase();
+                    const state = useStore.getState();
+                    const found = state.knownMechanics.find(m => m.code === code);
+                    if (found) {
+                      setManualForm({
+                        ...manualForm,
+                        mechanic_code: code,
+                        first_name: found.name,
+                        last_name: found.surname
+                      });
+                    } else {
+                      setManualForm({ ...manualForm, mechanic_code: code });
+                    }
+                  }}
+                />
+                {manualForm.mechanic_code && !useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code) && (
+                  <p className="text-[10px] text-brand-muted font-bold italic pl-1">Código no encontrado. Ingrese datos manualmente debajo.</p>
+                )}
+                {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code) && (
+                  <div className="flex items-center gap-2 pl-1 animate-in fade-in duration-300">
+                    <Check className="w-4 h-4 text-brand-success" />
+                    <p className="text-xs font-bold text-brand-success uppercase">Identificado: {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code).surname}, {useStore.getState().knownMechanics.find(m => m.code === manualForm.mechanic_code).name}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {manualForm.visitor_type !== 'MECANICO' && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                 <label className="block text-brand-muted text-sm font-bold uppercase tracking-wide mb-1.5 px-1">DNI del Visitante *</label>
@@ -549,7 +588,7 @@ export default function QRScanner() {
                   onChange={(e) => setManualForm({ ...manualForm, destination: e.target.value })}
                 >
                   <option value="">Seleccionar...</option>
-                  {sectors.map((s) => (
+                  {(manualForm.visitor_type === 'MECANICO' ? useStore.getState().mechanicDestinations : sectors).map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

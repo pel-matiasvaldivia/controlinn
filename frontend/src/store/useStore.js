@@ -40,6 +40,8 @@ export const useStore = create((set, get) => ({
   vehicles: [],
   logs: [], // Logs combinados de personas y vehículos
   sectors: [], // Sectores de destino configurables
+  mechanicDestinations: [], // Destinos exclusivos para mecánicos
+  knownMechanics: [], // Personal de mecánica (nombre, apellido, código)
   
   error: null,
   successMsg: null,
@@ -79,6 +81,34 @@ export const useStore = create((set, get) => ({
       return false;
     }
   },
+
+  // Cargar configuraciones de mecánicos
+  loadMechanicSettings: async () => {
+    try {
+      const [destRes, mechRes] = await Promise.all([
+        apiClient.get('/settings/mechanic_destinations'),
+        apiClient.get('/settings/known_mechanics')
+      ]);
+      set({ 
+        mechanicDestinations: destRes.data.mechanic_destinations || [],
+        knownMechanics: mechRes.data.known_mechanics || []
+      });
+    } catch (err) {
+      console.warn('[STORE] Error cargando settings de mecánicos.');
+    }
+  },
+
+  // Guardar configuraciones de mecánicos
+  saveMechanicSettings: async (key, value) => {
+    try {
+      await apiClient.put(`/settings/${key}`, { [key]: value });
+      set({ [key === 'mechanic_destinations' ? 'mechanicDestinations' : 'knownMechanics']: value });
+      return true;
+    } catch (err) {
+      console.error(`[STORE] Error guardando ${key}:`, err);
+      return false;
+    }
+  },
   
   setOnlineStatus: (status) => {
     const wasOffline = !get().online;
@@ -105,6 +135,7 @@ export const useStore = create((set, get) => ({
       // Cargar datos después del login
       await get().loadInitialData();
       await get().loadSectors();
+      await get().loadMechanicSettings();
       return true;
     } catch (err) {
       set({ error: err.response?.data?.error || 'Error al conectar con el servidor.' });
