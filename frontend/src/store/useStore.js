@@ -44,6 +44,7 @@ export const useStore = create((set, get) => ({
   providerSectors: [], // Sectores de destino para Proveedores
   mechanicDestinations: [], // Destinos exclusivos para mecánicos
   knownMechanics: [], // Personal de mecánica (nombre, apellido, código)
+  systemUsers: [], // Lista de usuarios del sistema (solo para admin)
   
   error: null,
   successMsg: null,
@@ -129,6 +130,49 @@ export const useStore = create((set, get) => ({
     // Si pasamos de offline a online, gatillar sincronización
     if (wasOffline && status && get().user) {
       get().syncOfflineData();
+    }
+  },
+
+  // --- GESTIÓN DE USUARIOS (Solo ADMIN) ---
+  loadSystemUsers: async () => {
+    try {
+      const res = await apiClient.get('/auth/users');
+      set({ systemUsers: res.data || [] });
+    } catch (err) {
+      console.warn('[STORE] Error cargando usuarios del sistema.');
+    }
+  },
+
+  createSystemUser: async (userData) => {
+    try {
+      await apiClient.post('/auth/users', userData);
+      await get().loadSystemUsers();
+      return true;
+    } catch (err) {
+      set({ error: err.response?.data?.error || 'Error creando usuario.' });
+      return false;
+    }
+  },
+
+  updateSystemUser: async (id, userData) => {
+    try {
+      await apiClient.put(`/auth/users/${id}`, userData);
+      await get().loadSystemUsers();
+      return true;
+    } catch (err) {
+      set({ error: err.response?.data?.error || 'Error actualizando usuario.' });
+      return false;
+    }
+  },
+
+  deleteSystemUser: async (id) => {
+    try {
+      await apiClient.delete(`/auth/users/${id}`);
+      await get().loadSystemUsers();
+      return true;
+    } catch (err) {
+      set({ error: err.response?.data?.error || 'Error eliminando usuario.' });
+      return false;
     }
   },
 

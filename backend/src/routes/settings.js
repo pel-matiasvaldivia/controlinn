@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/db');
-const { authenticateToken } = require('../middleware/authMiddleware');
+const { authenticateToken, requireRole } = require('../middleware/authMiddleware');
 
 // GET /settings/:key - Obtener valor de configuración por clave
 router.get('/:key', authenticateToken, async (req, res) => {
@@ -19,8 +19,8 @@ router.get('/:key', authenticateToken, async (req, res) => {
   }
 });
 
-// PUT /settings/:key - Actualizar valor de configuración por clave
-router.put('/:key', authenticateToken, async (req, res) => {
+// PUT /settings/:key - Actualizar valor de configuración por clave (Solo ADMIN)
+router.put('/:key', authenticateToken, requireRole(['ADMIN']), async (req, res) => {
   const { key } = req.params;
   const valueBody = req.body[key];
   
